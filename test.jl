@@ -1,8 +1,12 @@
+include("calc_plot_and_fit.jl")
+include("dynamic_update.jl")
+
+import CurveFit
+
 function toric_code()
     # Note that the d.o.f. are on the edges, not on the vertices.
 
     l=16
-
     lattice_size::Int32=2*l*l
 
     stab_generators=Vector{Tuple{Vector{Int32},Vector{Int8}}}() # Each stabilizer is stored as a tuple. The first component are the d.o.f. it acts on and the second are the Pauli matrices it acts as.
@@ -37,6 +41,7 @@ function toric_code()
         3 denotes Pauli_Z.
         =#
     end
+
     # Plaquette Stabilizers
     for m in 1:l*l # Consider the plaquette at the downright of the vertex in question.
         y=m%l
@@ -68,5 +73,49 @@ function toric_code()
     println("toric_code")
     println(length(stab_generators))
     # println(stab_generators)
-    calc_entropy(lattice_size,stab_generators)
+
+    # Select rectangular regions with increasing sizes and plot entropy vs region size.
+
+    start=Int32(floor(l/5))
+
+    volume_arr=zeros(Int32,Int32(l/2)-start+1)
+    area_arr=zeros(Int32,Int32(l/2)-start+1)
+    entropy_arr=zeros(Float32,Int32(l/2)-start+1)
+
+    for s in range(start,Int32(l/2))
+        region=Vector{Int32}()
+        area_arr[s-start+1]=4*s
+
+        for i in 1:s
+            for j in 1:s
+                m=(i-1)*l+j # The vertex
+                if(i<s) # Not on the rightmost
+                    push!(region,2*m-1)
+                    volume_arr[s-start+1]+=1
+                end
+
+                if(j<s) # Not on the downmost
+                    push!(region,2*m)
+                    volume_arr[s-start+1]+=1
+                end
+            end
+        end
+        entropy_arr[s-start+1]=calc_entropy(stab_generators,region)
+    end
+
+    println("area_arr:",area_arr)
+    plot_and_fit(entropy_arr,volume_arr,area_arr)
 end
+
+
+toric_code()
+
+a=2
+b=4
+arr=[1,2,3,4,5,6,7,8]
+arry=[2,3,4,5,6,7,8,10]
+
+println(cf.linear_fit(arr,arry))
+
+println(a*arr.+b)
+println(a.*arr.+b)
