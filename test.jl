@@ -1,21 +1,7 @@
-include("calc_plot_and_fit.jl")
-include("dynamic_update.jl")
-
-
-function main()
-    lattice_size::Int32=100
-    stab_generators=Vector{Tuple{Vector{Int32},Vector{Int8}}}()
-    calc_entropy(lattice_size,stab_generators)
-end
-
-#=
-Step 1: Calculate the entropy for specific codes, without considering the bounary conditions.
-=#
-
 function toric_code()
     # Note that the d.o.f. are on the edges, not on the vertices.
 
-    l=3
+    l=16
 
     lattice_size::Int32=2*l*l
 
@@ -82,13 +68,5 @@ function toric_code()
     println("toric_code")
     println(length(stab_generators))
     # println(stab_generators)
-
-    region=Vector{Int32}([7,8,9,14])
-    calc_entropy(stab_generators,region)
+    calc_entropy(lattice_size,stab_generators)
 end
-
-
-# A function to visualize the lattice and the stabilizers.
-
-
-toric_code()
