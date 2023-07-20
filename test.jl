@@ -3,7 +3,7 @@ include("dynamic_update.jl")
 
 import CurveFit
 
-function toric_code()
+function toric_code_static()
     # Note that the d.o.f. are on the edges, not on the vertices.
 
     l=8
@@ -109,6 +109,9 @@ function toric_code()
 end
 
 function floquet_code()
+    
 end
+
+
 
 
