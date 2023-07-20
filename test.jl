@@ -107,15 +107,8 @@ function toric_code()
     plot_and_fit(entropy_arr,volume_arr,area_arr)
 end
 
+function floquet_code()
+end
+
 
 toric_code()
-
-a=2
-b=4
-arr=[1,2,3,4,5,6,7,8]
-arry=[2,3,4,5,6,7,8,10]
-
-println(cf.linear_fit(arr,arry))
-
-println(a*arr.+b)
-println(a.*arr.+b)
