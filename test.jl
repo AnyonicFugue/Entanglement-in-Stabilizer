@@ -6,7 +6,7 @@ import CurveFit
 function toric_code()
     # Note that the d.o.f. are on the edges, not on the vertices.
 
-    l=16
+    l=8
     lattice_size::Int32=2*l*l
 
     stab_generators=Vector{Tuple{Vector{Int32},Vector{Int8}}}() # Each stabilizer is stored as a tuple. The first component are the d.o.f. it acts on and the second are the Pauli matrices it acts as.
@@ -105,10 +105,10 @@ function toric_code()
 
     println("area_arr:",area_arr)
     plot_and_fit(entropy_arr,volume_arr,area_arr)
+    # plot_and_fit_native(entropy_arr,volume_arr,area_arr)
 end
 
 function floquet_code()
 end
 
 
-toric_code()
