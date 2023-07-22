@@ -108,6 +108,26 @@ function toric_code_static()
     # plot_and_fit_native(entropy_arr,volume_arr,area_arr)
 end
 
+function single_triangle()
+    LatticeSize=3
+
+    ISG=zeros(Bool,(3,6))
+    measurement_rounds=zeros(Bool,(3,1,6)) # We perform 3 rounds of measurement. Each round has 1 measurement, which is the product of XX, YY, ZZ on 3 edges respectively.
+    measurement_rounds[1,1,:]=[true,false,true,false,false,false] #X1X2
+    measurement_rounds[2,1,:]=[false,false,false,true,false,true] #Z2Z3
+    measurement_rounds[3,1,:]=[true,true,false,false,true,true] #Y1Y3
+
+    for i in 1:3
+        ISG=update(LatticeSize,ISG,measurement_rounds[1,:,:])
+        println("ISG:",ISG)
+    end
+
+    
+    
+end
+
 function floquet_code()
     
 end
+
+single_triangle()
