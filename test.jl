@@ -230,11 +230,36 @@ function single_hexagon_2rounds(cycle)
     end
 end
 
-function floquet_code()
-    
+function large_random_stabilizers(LatticeSize::Int,MeasurementSize::Int,Elimination_Parallel::Bool,Comm_Parallel::Bool)
+
+
 end
 
 
-single_hexagon_3rounds(3)
+function test_parallel_comm_matrix(LatticeSize::Int64,ISGSize::Int64)
+    # Assume measurements are of the same order of ISG.
+
+    empty=zeros(Bool,(2,2))
+    calc_comm_matrix!(1,empty,empty,empty,false)
+    calc_comm_matrix!(1,empty,empty,empty,true) # Precompile the function.
+
+    OldISG=rand(Bool,(ISGSize,2*LatticeSize))
+    Measurements=rand(Bool,(ISGSize,2*LatticeSize))
+    CommMatrix=zeros(Bool,(ISGSize,ISGSize))
+
+    println("Serial Version")
+    @time calc_comm_matrix!(LatticeSize,OldISG,Measurements,CommMatrix,false)
+
+    OldISG=rand(Bool,(ISGSize,2*LatticeSize))
+    Measurements=rand(Bool,(ISGSize,2*LatticeSize))
+    CommMatrix=zeros(Bool,(ISGSize,ISGSize))
+
+    println("Parallel Version")
+    @time calc_comm_matrix!(LatticeSize,OldISG,Measurements,CommMatrix,true)
+
+end
+# single_hexagon_3rounds(3)
 # single_triangle()
 #single_hexagon_2rounds(3)
+
+test_parallel_comm_matrix(4096,1024)

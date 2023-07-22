@@ -18,7 +18,7 @@ Convention: Use Bool type. xor serves as + in F_2.
     v[i,:]=v[i,:] .⊻ v[j,:]
 end
 
-function gaussian_elimination!(Vecs::Matrix{Bool},Coefficients::Matrix{Bool})
+function gaussian_elimination!(Vecs::Matrix{Bool},Coefficients::Matrix{Bool},parallel::Bool)
     # The function overwrites the input vectors with the echoleon vectors and records the coefficients in the second vector.
     # The elimination works in the 2-element finite field. Note that summation is xor.
 
