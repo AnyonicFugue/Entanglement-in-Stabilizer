@@ -1,6 +1,6 @@
 import PyPlot as plt
 import CurveFit as cf
-import Plots
+# import Plots
 
 function calc_entropy(StabGenerators::Vector{Tuple{Vector{Int32},Vector{Int8}}},region::Vector{Int32})
     # region is a vector of the d.o.f. in the region of interest.

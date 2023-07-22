@@ -32,8 +32,9 @@ function gaussian_elimination!(Vecs::Matrix{Bool},Coefficients::Matrix{Bool})
     end
 
     cur=1 # The current vector we are working on.
+    rank=0
 
-    for i in 1:min(n,l)
+    for i in 1:l
         # Find the first vector with non-zero i-th component.
 
         found=false # Whether we have found such a vector. If not found we can directly jump to the next one.
@@ -46,8 +47,14 @@ function gaussian_elimination!(Vecs::Matrix{Bool},Coefficients::Matrix{Bool})
                 end
                 found=true
                 cur+=1 # The vector at cur has a nonzero i-th component. So for the next component we start the search from cur+1.
+                rank+=1 
                 break
             end
+        end
+
+        # Break if the matrix is already full-ranked.
+        if rank==n
+            break
         end
 
         # Eliminate the i-th component of the rest vectors.
@@ -58,14 +65,6 @@ function gaussian_elimination!(Vecs::Matrix{Bool},Coefficients::Matrix{Bool})
                     Coefficients[j,:]=Coefficients[j,:] .⊻ Coefficients[cur-1,:]
                 end
             end
-        end
-    end
-        
-    # Compute the rank, i.e. nonzero echoleon vectors.
-    rank=0
-    for i in 1:min(n,l)
-        if !iszero(Vecs[i,:])
-            rank+=1
         end
     end
 

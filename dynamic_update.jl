@@ -85,7 +85,7 @@ function update(LatticeSize::Int64,OldISG::Array{Bool,2},Measurements::Array{Boo
     end
 
     # Step 2.1. Find a maximal linear independent subset of Dependent_Vec.
-    NewISG_vec=transpose(reduce(hcat,Dependent_Vec)) # The vectors are stored in the columns.
+    NewISG_vec=permutedims(reduce(hcat,Dependent_Vec)) # The vectors are stored in the columns.
     coeff_tmp=zeros(Bool,(length(NewISG_vec[:,1]),length(NewISG_vec[:,1]))) # The coefficients of the echoleon vectors. The entry (i,j) is the coefficient of the j-th generator in the i-th echoleon vector.
     rank=gaussian_elimination!(NewISG_vec,coeff_tmp) # The function overwrites the input vectors with the echoleon vectors.
     # Here the coefficients are not needed anymore.

@@ -113,21 +113,128 @@ function single_triangle()
 
     ISG=zeros(Bool,(3,6))
     measurement_rounds=zeros(Bool,(3,1,6)) # We perform 3 rounds of measurement. Each round has 1 measurement, which is the product of XX, YY, ZZ on 3 edges respectively.
-    measurement_rounds[1,1,:]=[true,false,true,false,false,false] #X1X2
-    measurement_rounds[2,1,:]=[false,false,false,true,false,true] #Z2Z3
-    measurement_rounds[3,1,:]=[true,true,false,false,true,true] #Y1Y3
+    measurement_rounds[1,1,:]=[1,0,1,0,0,0] #X1X2
+    measurement_rounds[2,1,:]=[0,0,0,1,0,1] #Z2Z3
+    measurement_rounds[3,1,:]=[1,1,0,0,1,1] #Y1Y3
 
     for i in 1:3
-        ISG=update(LatticeSize,ISG,measurement_rounds[1,:,:])
+        ISG=update(LatticeSize,ISG,measurement_rounds[i,:,:])
         println("ISG:",ISG)
+        println("ISG_to_string:",ISG_to_string(ISG))
     end
+end
 
+function ISG_to_string(ISG::Array{Bool,2})
+    # Convert the ISG to a string.
+    # The first index is the index of the stabilizer. The second index is the index of the d.o.f.
+    # The d.o.f. are ordered as X1,Z1,X2,Z2,...,Xn,Zn.
+
+    n=length(ISG[:,1])
+    lattice_size=Int(length(ISG[1,:])/2)
+    ISG_string=Vector{String}(undef,0)
     
+    for i in 1:n
+        str=String[]
+       
+        for k in 1:lattice_size
+            if (ISG[i,2*k-1])&&(!ISG[i,2*k])
+                push!(str,"X")
+                push!(str,string(k))
+            elseif (!ISG[i,2*k-1])&&(ISG[i,2*k])
+                push!(str,"Z")
+                push!(str,string(k))
+            elseif (ISG[i,2*k-1])&&(ISG[i,2*k])
+                push!(str,"Y")
+                push!(str,string(k))
+            end  
+        end
+       
+        push!(ISG_string,join(str))
+    end
+    return ISG_string
+end
+
+function single_hexagon_3rounds(cycle)
+    # Perform 3 rounds of measurement on a hexagon.
+    lattice_size=6
+    round=3
+
+    ISG=zeros(Bool,(round,2*lattice_size))
+    measurement_rounds=zeros(Bool,(round,2,2*lattice_size)) # We perform 3 rounds of measurement. Each round has 1 measurement, which is the product of XX, YY, ZZ on 3 edges respectively.
+    # Round 1: Measure Z1Z6 and Z3Z4
+    measurement_rounds[1,1,2]=1
+    measurement_rounds[1,1,12]=1
+    measurement_rounds[1,2,6]=1
+    measurement_rounds[1,2,8]=1
+
+    # Round 2: Measure X1X2 and X4X5
+    measurement_rounds[2,1,1]=1
+    measurement_rounds[2,1,3]=1
+    measurement_rounds[2,2,7]=1
+    measurement_rounds[2,2,9]=1
+
+    # Round 3: Measure Y2Y3 and Y5Y6
+    measurement_rounds[3,1,3]=1
+    measurement_rounds[3,1,4]=1
+    measurement_rounds[3,1,5]=1
+    measurement_rounds[3,1,6]=1
     
+    measurement_rounds[3,2,9]=1
+    measurement_rounds[3,2,10]=1
+    measurement_rounds[3,2,11]=1
+    measurement_rounds[3,2,12]=1
+
+    for i in 1:cycle*round
+        ISG=update(lattice_size,ISG,measurement_rounds[(i-1)%round+1,:,:])
+        println("ISG:",ISG)
+        println("ISG_to_string:",ISG_to_string(ISG))
+    end
+end
+
+function single_hexagon_2rounds(cycle)
+    # Perform 2 rounds of measurement on a hexagon.
+    lattice_size=6
+    round=2
+
+    ISG=zeros(Bool,(round,2*lattice_size))
+    measurement_rounds=zeros(Bool,(round,3,2*lattice_size)) # We perform 2 rounds of measurement. Each round has 1 measurement, which is the product of XX, YY, ZZ on 3 edges respectively.
+ 
+    # Round 1: Measure X1X2, Z3Z4, Y5Y6
+    measurement_rounds[1,1,1]=1
+    measurement_rounds[1,1,3]=1
+
+    measurement_rounds[1,2,6]=1
+    measurement_rounds[1,2,8]=1
+
+    measurement_rounds[1,3,9]=1
+    measurement_rounds[1,3,10]=1
+    measurement_rounds[1,3,11]=1
+    measurement_rounds[1,3,12]=1
+
+    # Round 2: Measure Z1Z6, X4X5, Y2Y3
+    measurement_rounds[2,1,2]=1
+    measurement_rounds[2,1,12]=1
+
+    measurement_rounds[2,2,7]=1
+    measurement_rounds[2,2,9]=1
+
+    measurement_rounds[2,3,3]=1
+    measurement_rounds[2,3,4]=1
+    measurement_rounds[2,3,5]=1
+    measurement_rounds[2,3,6]=1
+
+    for i in 1:cycle*round
+        ISG=update(lattice_size,ISG,measurement_rounds[(i-1)%round+1,:,:])
+        println("ISG:",ISG)
+        println("ISG_to_string:",ISG_to_string(ISG))
+    end
 end
 
 function floquet_code()
     
 end
 
-single_triangle()
+
+single_hexagon_3rounds(3)
+# single_triangle()
+#single_hexagon_2rounds(3)
