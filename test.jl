@@ -111,7 +111,3 @@ end
 function floquet_code()
     
 end
-
-
-
-

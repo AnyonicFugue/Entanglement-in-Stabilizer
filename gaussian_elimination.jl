@@ -10,12 +10,12 @@ Convention: Use Bool type. xor serves as + in F_2.
     Specifically, use the elimination to reduce to an echoleon form and record the coefficients.
 
 =#
-@inline function swap!(v1::Vector{Bool},v2::Vector{Bool})
-    # The function swaps the two vectors.
+@inline function swaprows!(v::Matrix{Bool},i::Int64,j::Int64)
+    # The function swaps the rows of a matrix, v[i,:] and v[j,:].
     # The function is inlined to avoid the overhead of function call.
-    v1=v1 .⊻ v2
-    v2=v1 .⊻ v2
-    v1=v1 .⊻ v2
+    v[i,:]=v[i,:] .⊻ v[j,:]
+    v[j,:]=v[i,:] .⊻ v[j,:]
+    v[i,:]=v[i,:] .⊻ v[j,:]
 end
 
 function gaussian_elimination!(Vecs::Matrix{Bool},Coefficients::Matrix{Bool})
@@ -31,25 +31,31 @@ function gaussian_elimination!(Vecs::Matrix{Bool},Coefficients::Matrix{Bool})
         Coefficients[i,i]=true # The coefficient of the i-th vector is 1.
     end
 
+    cur=1 # The current vector we are working on.
+
     for i in 1:min(n,l)
         # Find the first vector with non-zero i-th component.
 
         found=false # Whether we have found such a vector. If not found we can directly jump to the next one.
 
-        for j in i:n
+        for j in cur:n
             if (Vecs[j,i]==true)&&(found==false)
-                swap!(Vecs[i,:],Vecs[j,:])
-                swap!(Coefficients[i,:],Coefficients[j,:])
+                if(j!=cur)
+                    swaprows!(Vecs,cur,j)
+                    swaprows!(Coefficients,cur,j)
+                end
                 found=true
+                cur+=1 # The vector at cur has a nonzero i-th component. So for the next component we start the search from cur+1.
+                break
             end
         end
 
         # Eliminate the i-th component of the rest vectors.
         if(found)  
-            for j in i+1:n
+            for j in cur:n
                 if Vecs[j,i]==true
-                    Vecs[j,:]=Vecs[j,:] .⊻ Vecs[i,:]
-                    Coefficients[j,:]=Coefficients[j,:] .⊻ Coefficients[i,:]
+                    Vecs[j,:]=Vecs[j,:] .⊻ Vecs[cur-1,:]
+                    Coefficients[j,:]=Coefficients[j,:] .⊻ Coefficients[cur-1,:]
                 end
             end
         end
@@ -57,7 +63,7 @@ function gaussian_elimination!(Vecs::Matrix{Bool},Coefficients::Matrix{Bool})
         
     # Compute the rank, i.e. nonzero echoleon vectors.
     rank=0
-    for i in 1:n
+    for i in 1:min(n,l)
         if !iszero(Vecs[i,:])
             rank+=1
         end

@@ -1,33 +1,23 @@
 # Compare the performances of bool and GF(2)
 # Conclusion: Use Bool. Bool is faster than GF(2).
 include("gaussian_elimination.jl")
+include("dynamic_update.jl")
 
-vec_arr=zeros(Bool,(5,5))
+a=[1,1,1]
+OldISG=zeros(Bool,(3,4))
+Measurements=zeros(Bool,(3,4))
 
-vec_arr[1,:]=[1,0,0,0,0]
-vec_arr[2,:]=[1,1,0,0,0]
-vec_arr[3,:]=[0,1,1,0,0]
-vec_arr[4,:]=[0,0,1,0,0]
-vec_arr[5,:]=[0,1,0,0,0]
+OldISG[1,:]=[0,1,0,1]
+OldISG[2,:]=[1,0,1,1]
+OldISG[3,:]=[1,1,0,0]
 
+Measurements[1,:]=[0,1,0,1]
+Measurements[2,:]=[1,0,1,0]
+Measurements[3,:]=[1,1,0,0]
 
-coeff_arr=zeros(Bool,(5,5)) # This array must be square.
-
-println(gaussian_elimination!(vec_arr,coeff_arr))
-println(vec_arr)
-println(coeff_arr)
-
-
-
-vec_arr=zeros(Bool,(5,3))
-
-vec_arr[1,:]=[1,0,0]
-vec_arr[2,:]=[1,1,0]
-vec_arr[3,:]=[0,1,0]
+comm_mat=zeros(Bool,(3,3))
 
 
-coeff_arr=zeros(Bool,(5,5)) # This array must be square.
+println(calc_comm_matrix!(2,OldISG,Measurements,comm_mat))
+println(comm_mat)
 
-println(gaussian_elimination!(vec_arr,coeff_arr))
-println(vec_arr)
-println(coeff_arr)
