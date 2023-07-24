@@ -230,12 +230,6 @@ function single_hexagon_2rounds(cycle)
     end
 end
 
-function large_random_stabilizers(LatticeSize::Int,MeasurementSize::Int,Elimination_Parallel::Bool,Comm_Parallel::Bool)
-
-
-end
-
-
 function test_parallel_comm_matrix(LatticeSize::Int64,ISGSize::Int64)
     # Assume measurements are of the same order of ISG.
 
@@ -262,4 +256,9 @@ end
 # single_triangle()
 #single_hexagon_2rounds(3)
 
-test_parallel_comm_matrix(4096,1024)
+function snake_growing_lattice(Cycle::Int,LatticeSize::Int)
+    round=8
+end
+
+stab_generators=zeros(Bool,(1,1))
+sampling_square(4,3,1,stab_generators)
