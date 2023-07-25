@@ -2,6 +2,8 @@ include("calc_plot_and_fit.jl")
 include("dynamic_update.jl")
 
 import CurveFit
+import Profile
+import StatProfilerHTML
 
 function toric_code_static(l::Int64,Parallel::Bool)
     # Note that the d.o.f. are on the edges, not on the vertices.
@@ -93,31 +95,42 @@ function toric_code_static(l::Int64,Parallel::Bool)
     area_arr=zeros(Int64,Int64(l/2)-start+1)
     entropy_arr=zeros(Float32,Int64(l/2)-start+1)
 
+    region=zeros(Int64,(Int64(l/2)-start+1,2*Int64(l/2)^2))
+    cur=zeros(Int64,Int64(l/2)-start+1)
 
-    @time for s in range(start,Int64(l/2))
-        region=Vector{Int64}()
+    for s in range(max(start,2),Int64(l/2))
+        cur[s-start+1]=1
         area_arr[s-start+1]=4*s
 
         for i in 1:s
             for j in 1:s
                 m=(i-1)*l+j # The vertex
                 if(i<s) # Not on the rightmost
-                    push!(region,2*m-1)
+                    region[s-start+1,cur[s-start+1]]=2*m-1
+                    cur[s-start+1]+=1
                     volume_arr[s-start+1]+=1
                 end
 
                 if(j<s) # Not on the downmost
-                    push!(region,2*m)
+                    region[s-start+1,cur[s-start+1]]=2*m
                     volume_arr[s-start+1]+=1
+                    cur[s-start+1]+=1
                 end
             end
         end
-        entropy_arr[s-start+1]=calc_entropy(stab_generators,region,Parallel)
+
+        # println(region[s-start+1,:]) # Only for debugging
+        # entropy_arr[s-start+1]=calc_entropy(stab_generators,region[s-start+1,1:cur-1],Parallel)
+    end
+
+    for s in range(max(start,2),Int64(l/2)) # The line is separated for testing the performance of the function.
+        entropy_arr[s-start+1]=calc_entropy(stab_generators,view(region,s-start+1,:),Parallel,cur[s-start+1]-1)
     end
 
     println("area_arr:",area_arr)
     ## plot_and_fit(entropy_arr,volume_arr,area_arr) 
         # Disabled when timing.
+    fit(entropy_arr,volume_arr,area_arr)
     # plot_and_fit_native(entropy_arr,volume_arr,area_arr)
 end
 
@@ -273,7 +286,17 @@ function snake_growing_lattice(Cycle::Int,LatticeSize::Int)
     round=8
 end
 
-toric_code_static(4,true)
-# toric_code_static(4,false)
-# @time toric_code_static(64,false)
-toric_code_static(64,true) # The job now is to reduce gc time.
+function test_gaussian(n)
+    small=zeros(Bool,(1,1))
+
+    vecs=rand(Bool,(n,n))
+    coeff=zeros(Bool,(n,n))
+
+    gaussian_elimination!(small,small)
+    #StatProfilerHTML.@profilehtml gaussian_elimination!(vecs,coeff)
+    @time gaussian_elimination!(vecs,coeff)
+    # Profile.@profile gaussian_elimination!(vecs,coeff)
+    # Profile.print()
+end
+
+test_gaussian(1500)
