@@ -12,7 +12,7 @@ function calc_entropy(StabGenerators::Array{Bool,2},Region,Parallel::Bool,Region
     # 'Density' means the distance between different samplings.
 
 
-    n_stab=length(StabGenerators[:,1])
+    @views n_stab=length(StabGenerators[:,1])
     stab_weights_total=zeros(Int64,n_stab) # The weight of each stabilizer. Note that X and Z are both weight 1, while Y is weight 2.
     stab_weights_region=zeros(Int64,n_stab) # The weight of each stabilizer in the region.
     stab_in_A_or_B=zeros(Bool,n_stab) # Whether the stabilizer is in A or B.
@@ -54,35 +54,51 @@ function calc_entropy(StabGenerators::Array{Bool,2},Region,Parallel::Bool,Region
     return entropy
 end
 
-function sampling_square(LatticeSize::Int64,RegionSize::Int64,SampleInterval::Int64,StabGenerators::Array{Bool,2})
+function sample_squares(LatticeSideLength::Int64,RegionSideLength::Int64,SampleInterval::Int64,StabGenerators::Array{Bool,2})
 
-    region_arr=Vector{Vector{Int64}}(undef,0) # The array to store the region of different start positions.
-    n=0
+    # region_arr=Vector{Vector{Int64}}(undef,0) # The array to store the region of different start positions.
+    n_sample_1D=Int64(floor((LatticeSideLength-RegionSideLength)/SampleInterval)) # The number of samples in a single dimension.
+        # e.g. LatticeSideLength=10, RegionSideLength=3, SampleInterval=2, then n_sample=4.
+    n_sample=n_sample_1D*n_sample_1D # The number of samples in total.
 
-    for x_start_pos in range(start=1,step=SampleInterval,stop=LatticeSize-RegionSize+1)
-        for y_start_pos in range(start=1,step=SampleInterval,stop=LatticeSize-RegionSize+1)
-            # Take a rectangular region starting from start_pos, of length RegionSize.
-            n+=1 # The cursor of the present start_pos.
-            push!(region_arr,Vector{Int64}(undef,0)) # Initialize the region array.
+    region_arr=zeros(Int64,(n_sample,2*RegionSideLength*RegionSideLength)) # The array to store the region of different start positions.
+        # The first index is the number of the sample.
+        # The number of vertices in the region is RegionSideLength*RegionSideLength, so the number of edges is 2*RegionSideLength*RegionSideLength.
+    cur=zeros(Int64,n_sample) # The number of vertices in the region of different start positions.
+    entropy_arr=zeros(Float32,n_sample) # The entropy of different start positions.
 
-            for i in range(start=x_start_pos,step=1,length=RegionSize)
-                for j in range(start=y_start_pos,step=1,length=RegionSize)
-                    m=(i-1)*LatticeSize+j # The vertex
-                    if(i<x_start_pos+RegionSize) # Not on the rightmost
-                        push!(region_arr[n],2*m-1)
+    n=0 # The cursor of the present start_pos.
+
+    for x_start_pos in range(start=1,step=SampleInterval,length=n_sample_1D) # Generate the regions to sample over
+        for y_start_pos in range(start=1,step=SampleInterval,length=n_sample_1D)
+            # Take a rectangular region starting from start_pos, of length RegionSideLength.
+            n+=1
+            cur[n]=1
+
+            for i in range(start=x_start_pos,step=1,length=RegionSideLength)
+                for j in range(start=y_start_pos,step=1,length=RegionSideLength)
+                    m=(i-1)*LatticeSideLength+j # The vertex
+                    if(i<x_start_pos+RegionSideLength-1) # Not on the rightmost
+                        region_arr[n,cur[n]]=2*m-1
+                        cur[n]+=1
                     end
 
-                    if(j<y_start_pos+RegionSize) # Not on the downmost
-                        push!(region_arr[n],2*m)
+                    if(j<y_start_pos+RegionSideLength-1) # Not on the downmost
+                        region_arr[n,cur[n]]=2*m
+                        cur[n]+=1
                     end
+                    
                 end
             end
         end
     end
-    # Only for testing
-    for i in 1:length(region_arr)
-        println(region_arr[i])
+
+
+    Threads.@threads for i in 1:n_sample
+        @views entropy_arr[i]=calc_entropy(StabGenerators,region_arr[i,1:cur[i]-1],false,cur[i]-1)
     end
+
+    return sum(entropy_arr)/n_sample
 
 end
 

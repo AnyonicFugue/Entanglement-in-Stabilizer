@@ -58,11 +58,20 @@ function gaussian_elimination!(Vecs::Matrix{Bool},Coefficients::Matrix{Bool})
         end
 
         # Eliminate the i-th component of the rest vectors.
-        if(found)  
-            for j in cur:n
-                if Vecs[j,i]==true
-                    @views Vecs[j,:] = Vecs[j,:] .⊻ Vecs[cur-1,:]
-                    @views Coefficients[j,:] = Coefficients[j,:] .⊻ Coefficients[cur-1,:]
+        if(found)
+            if(n-cur>32)
+                Threads.@threads for j in cur:n
+                    if Vecs[j,i]==true
+                        @views Vecs[j,:] = Vecs[j,:] .⊻ Vecs[cur-1,:]
+                        @views Coefficients[j,:] = Coefficients[j,:] .⊻ Coefficients[cur-1,:]
+                    end
+                end
+            else
+                for j in cur:n
+                    if Vecs[j,i]==true
+                        @views Vecs[j,:] = Vecs[j,:] .⊻ Vecs[cur-1,:]
+                        @views Coefficients[j,:] = Coefficients[j,:] .⊻ Coefficients[cur-1,:]
+                    end
                 end
             end
         end
