@@ -3,13 +3,16 @@ include("dynamic_update.jl")
 
 import CurveFit
 
-function toric_code_static()
+function toric_code_static(l::Int64,Parallel::Bool)
     # Note that the d.o.f. are on the edges, not on the vertices.
+    # The stabilizers are ordered as X1,Z1,X2,Z2,...,Xn,Zn.
 
-    l=8
-    lattice_size::Int32=2*l*l
+    lattice_size::Int64=2*l*l
 
-    stab_generators=Vector{Tuple{Vector{Int32},Vector{Int8}}}() # Each stabilizer is stored as a tuple. The first component are the d.o.f. it acts on and the second are the Pauli matrices it acts as.
+    # For a lattice of length l, the size is 2*l*l, since each vertex corresponds to two edges.
+    # There is one stabilizer on each vertex and each plaquette, so the total number of stabilizers is 2*l*l.
+
+    stab_generators=zeros(Bool,(2*l*l,2*lattice_size)) # For each stabilizer the first index is the index of the stabilizer. The second index is the index of the d.o.f.
 
     # Vertex Stabilizers
     for m in 1:l*l # m is the index of the vertex
@@ -17,7 +20,10 @@ function toric_code_static()
         if y==0
             y=l
         end
-        x=Int32((m-y)/l)+1
+        x=Int64((m-y)/l)+1
+
+        # Relation between the coordinate and the index of the vertex: m=(x-1)*l+y
+        # The edge on the right of the vertex m is 2*m-1. The edge on the down of the vertex is 2*m.
 
         x_left=x-1
         if x_left==0
@@ -31,14 +37,17 @@ function toric_code_static()
         end
         m_up=(x-1)*l+y_up
 
-        push!(stab_generators,([2*m-1,2*m,2*m_left-1,2*m_up],[3,3,3,3]))
+        stab_generators[m,2*(2*m-1)]=true
+        stab_generators[m,2*(2*m)]=true
+        stab_generators[m,2*(2*m_left-1)]=true
+        stab_generators[m,2*(2*m_up)]=true
         #=
-        Each vertex stabilizer acts on 4 edges: 
+        Each vertex stabilizer acts on 4 edges as Pauli_Z:
         Right edge, 2*m-1; 
         Down edge, 2*m; 
         Left edge (or right edge of vertex on the left). The coordinate of the vertex on the left is (x-1 (l if equals zero),y), 
         Up edge (or down edge of vertex on the top), The coordinate of the vertex on the top is (x,y-1 (l if equals zero)).
-        3 denotes Pauli_Z.
+        2*n denotes Pauli_Z on the n-th d.o.f.
         =#
     end
 
@@ -49,7 +58,7 @@ function toric_code_static()
             y=l
         end
             
-        x=Int32((m-y)/l)+1
+        x=Int64((m-y)/l)+1
 
         y_down=y%l+1
         x_right=x%l+1
@@ -57,6 +66,10 @@ function toric_code_static()
         m_down=(x-1)*l+y_down
         m_right=(x_right-1)*l+y
 
+        stab_generators[l*l+m,2*(2*m-1)-1]=true
+        stab_generators[l*l+m,2*(2*m)-1]=true
+        stab_generators[l*l+m,2*(2*m_down-1)-1]=true
+        stab_generators[l*l+m,2*(2*m_right)-1]=true
         #=
         Each vertex stabilizer acts on 4 edges: 
         Right edge, 2*m-1; 
@@ -64,26 +77,25 @@ function toric_code_static()
         Right edge of the vertex on the downside. The coordinate of the vertex on the downside is (x,y%l+1).
         Down edge of the vertex on the right. The coordinate of the vertex on the right is (x%l+1,y).
     
-        1 denotes Pauli_X.
+        2*n-1 denotes Pauli_X on the n-th d.o.f.
         =#
-
-        push!(stab_generators,([2*m-1,2*m,2*m_down-1,2*m_right],[1,1,1,1]))
     end
 
     println("toric_code")
-    println(length(stab_generators))
+    println(length(stab_generators[:,1]))
     # println(stab_generators)
 
     # Select rectangular regions with increasing sizes and plot entropy vs region size.
 
-    start=Int32(floor(l/5))
+    start=Int64(floor(l/5))
 
-    volume_arr=zeros(Int32,Int32(l/2)-start+1)
-    area_arr=zeros(Int32,Int32(l/2)-start+1)
-    entropy_arr=zeros(Float32,Int32(l/2)-start+1)
+    volume_arr=zeros(Int64,Int64(l/2)-start+1)
+    area_arr=zeros(Int64,Int64(l/2)-start+1)
+    entropy_arr=zeros(Float32,Int64(l/2)-start+1)
 
-    for s in range(start,Int32(l/2))
-        region=Vector{Int32}()
+
+    @time for s in range(start,Int64(l/2))
+        region=Vector{Int64}()
         area_arr[s-start+1]=4*s
 
         for i in 1:s
@@ -100,11 +112,12 @@ function toric_code_static()
                 end
             end
         end
-        entropy_arr[s-start+1]=calc_entropy(stab_generators,region)
+        entropy_arr[s-start+1]=calc_entropy(stab_generators,region,Parallel)
     end
 
     println("area_arr:",area_arr)
-    plot_and_fit(entropy_arr,volume_arr,area_arr)
+    ## plot_and_fit(entropy_arr,volume_arr,area_arr) 
+        # Disabled when timing.
     # plot_and_fit_native(entropy_arr,volume_arr,area_arr)
 end
 
@@ -260,5 +273,7 @@ function snake_growing_lattice(Cycle::Int,LatticeSize::Int)
     round=8
 end
 
-stab_generators=zeros(Bool,(1,1))
-sampling_square(4,3,1,stab_generators)
+toric_code_static(4,true)
+# toric_code_static(4,false)
+# @time toric_code_static(64,false)
+toric_code_static(64,true) # The job now is to reduce gc time.
