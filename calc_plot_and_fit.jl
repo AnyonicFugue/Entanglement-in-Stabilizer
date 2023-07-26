@@ -1,10 +1,7 @@
 import PyPlot as plt
 import CurveFit as cf
 
-# import Plots
-
-
-function calc_entropy(StabGenerators::Array{Bool,2},Region,Parallel::Bool,RegionSize::Int64)
+function calc_entropy_old(StabGenerators::Array{Bool,2},Region,Parallel::Bool,RegionSize::Int64)
     # region is a vector of the d.o.f. in the region of interest.
 
     # Strategy: Calculate (rank G-rank G_A-rank G_B)/2.
@@ -49,12 +46,83 @@ function calc_entropy(StabGenerators::Array{Bool,2},Region,Parallel::Bool,Region
     end
 
     entropy=(n_stab-sum(stab_in_A_or_B))/2
-    ## println("rank_GA:",rank_GA,", rank_GB:",rank_GB)
-    ## println("entropy:",entropy)
     return entropy
 end
 
-function sample_squares(LatticeSideLength::Int64,RegionSideLength::Int64,SampleInterval::Int64,StabGenerators::Array{Bool,2})
+function calc_entropy(StabGenerators::Array{Bool,2},Region,Parallel::Bool,RegionSize::Int64)
+    # region is a vector of the d.o.f. in the region of interest.
+
+    # Strategy: Calculate (rank G-rank G_A-rank G_B)/2.
+
+    # rank G_A and rank G_B are calculated by the rank of the submatrix of G_A and G_B corresponding to the region.
+        # Specifically, rank G_A = # columns - rank P_A(G)
+
+    rank_GA=0
+    rank_GB=0
+
+    @views n_stab=length(StabGenerators[:,1])
+    @views n_dof=length(StabGenerators[1,:]) # The number of d.o.f. in the region.
+    partial_stab_A=zeros(Bool,(n_stab,2*RegionSize)) # The partial matrices in the region A.
+    partial_stab_B=zeros(Bool,(n_stab,2*(n_dof-RegionSize))) # The partial matrices in the region B.
+
+    coefficients=zeros(Bool,(n_stab,n_stab)) # The coefficients to call the gaussian_elimination.
+
+    cur_A=zeros(Int64,n_stab) # The number of vertices in the region of different start positions.
+    cur_B=zeros(Int64,n_stab) # The number of vertices in the region of different start positions.
+
+    # Construct the partial matrices.
+    if(Parallel)
+        Threads.@threads for i in 1:n_stab
+            cur_A[i]=1
+            cur_B[i]=1
+
+            for j in 1:Int64(n_dof/2) # The number of vertices.
+                if j in Region
+                    partial_stab_A[i,cur_A[i]]=StabGenerators[i,2*j-1]
+                    cur_A[i]+=1
+                    partial_stab_A[i,cur_A[i]]=StabGenerators[i,2*j]
+                    cur_A[i]+=1
+                else
+                    partial_stab_B[i,cur_B[i]]=StabGenerators[i,2*j-1]
+                    cur_B[i]+=1
+                    partial_stab_B[i,cur_B[i]]=StabGenerators[i,2*j]
+                    cur_B[i]+=1
+                end
+            end
+        end
+    else
+        for i in 1:n_stab
+            cur_A[i]=1
+            cur_B[i]=1
+
+            for j in 1:Int64(n_dof/2) # The number of vertices.
+                if j in Region
+                    partial_stab_A[i,cur_A[i]]=StabGenerators[i,2*j-1]
+                    cur_A[i]+=1
+                    partial_stab_A[i,cur_A[i]]=StabGenerators[i,2*j]
+                    cur_A[i]+=1
+                else
+                    partial_stab_B[i,cur_B[i]]=StabGenerators[i,2*j-1]
+                    cur_B[i]+=1
+                    partial_stab_B[i,cur_B[i]]=StabGenerators[i,2*j]
+                    cur_B[i]+=1
+                end
+            end
+        end
+    end
+
+   
+    rank_GB=n_stab-gaussian_elimination!(partial_stab_A,coefficients,Parallel) # Mathematically this is the dimension of the zero space of A-submatrices. Each basis element of the zero space corresponds to a generator of G_B.
+    rank_GA=n_stab-gaussian_elimination!(partial_stab_B,coefficients,Parallel)
+
+    entropy=(n_stab-rank_GA-rank_GB)/2
+    # println("rank_GA:",rank_GA,", rank_GB:",rank_GB)
+    # println("entropy:",entropy)
+
+    return entropy
+end
+
+function sample_squares(LatticeSideLength::Int64,RegionSideLength::Int64,SampleInterval::Int64,StabGenerators::Array{Bool,2},Parallel::Bool)
 
     # region_arr=Vector{Vector{Int64}}(undef,0) # The array to store the region of different start positions.
     n_sample_1D=Int64(floor((LatticeSideLength-RegionSideLength)/SampleInterval)) # The number of samples in a single dimension.
@@ -93,9 +161,16 @@ function sample_squares(LatticeSideLength::Int64,RegionSideLength::Int64,SampleI
         end
     end
 
-
-    Threads.@threads for i in 1:n_sample
-        @views entropy_arr[i]=calc_entropy(StabGenerators,region_arr[i,1:cur[i]-1],false,cur[i]-1)
+    if(Parallel)
+        Threads.@threads for i in 1:n_sample
+            @views entropy_arr[i]=calc_entropy(StabGenerators,region_arr[i,1:cur[i]-1],false,cur[i]-1)
+            # @views entropy_arr[i]=calc_entropy_old(StabGenerators,region_arr[i,1:cur[i]-1],false,cur[i]-1)
+        end
+    else
+        for i in 1:n_sample
+            @views entropy_arr[i]=calc_entropy(StabGenerators,region_arr[i,1:cur[i]-1],false,cur[i]-1)
+            # @views entropy_arr[i]=calc_entropy_old(StabGenerators,region_arr[i,1:cur[i]-1],false,cur[i]-1)
+        end
     end
 
     return sum(entropy_arr)/n_sample
@@ -122,33 +197,6 @@ function plot_and_fit(EntropyArr::Vector{Float32},VolumeArr::Vector{Int64},AreaA
     plt.grid()
     plt.show()
 end
-
-function plot_and_fit_native(EntropyArr::Vector{Float32},VolumeArr::Vector{Int64},AreaArr::Vector{Int64})
-    # Plot entropy vs area and volume.
-
-
-    bv,av=cf.linear_fit(VolumeArr,EntropyArr)
-    ba,aa=cf.linear_fit(AreaArr,EntropyArr)
-
-    println("Area-law fitting: y=",aa,"x+",ba)
-    Plots.plot(AreaArr,EntropyArr,label="Entropy vs Area")
-    Plots.plot(AreaArr,aa*AreaArr.+ba,label="Fitted")
-    ## plt.plot(AreaArr,EntropyArr,AreaArr,aa*AreaArr.+ba)
-    
-    #Plots.title("Entropy vs Area")
-    #Plots.grid()
-    ## plt.show() Special solution for github codespace
-    # readline()
-    
-    println("Volume-law fitting: y=",av,"x+",bv)
-    Plots.plot(VolumeArr,EntropyArr,label="Entropy vs Volume")
-    Plots.plot(VolumeArr,av*VolumeArr.+bv,label="Fitted")
-    # lots.title("Entropy vs Volume")
-    # Plots.grid()
-    # readline()
-    ## plt.show()
-end
-
 
 function fit(EntropyArr::Vector{Float32},VolumeArr::Vector{Int64},AreaArr::Vector{Int64})
     # Plot entropy vs area and volume.

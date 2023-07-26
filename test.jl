@@ -128,6 +128,7 @@ function toric_code_static(l::Int64,Parallel::Bool)
     end
 
     println("area_arr:",area_arr)
+    println("entropy_arr:",entropy_arr)
     ## plot_and_fit(entropy_arr,volume_arr,area_arr) 
         # Disabled when timing.
     fit(entropy_arr,volume_arr,area_arr)
@@ -286,7 +287,7 @@ function ISG_to_string(ISG::Array{Bool,2})
     return ISG_string
 end
 
-function single_hexagon_3rounds(cycle)
+function single_hexagon_3rounds(cycle,Comm_Parallel::Bool,Elimination_Parallel::Bool)
     # Perform 3 rounds of measurement on a hexagon.
     lattice_size=6
     round=3
@@ -317,13 +318,13 @@ function single_hexagon_3rounds(cycle)
     measurement_rounds[3,2,12]=1
 
     for i in 1:cycle*round
-        ISG=update(lattice_size,ISG,measurement_rounds[(i-1)%round+1,:,:])
+        ISG=update(lattice_size,ISG,measurement_rounds[(i-1)%round+1,:,:],Comm_Parallel,Elimination_Parallel)
         println("ISG:",ISG)
         println("ISG_to_string:",ISG_to_string(ISG))
     end
 end
 
-function single_hexagon_2rounds(cycle)
+function single_hexagon_2rounds(cycle,Comm_Parallel::Bool,Elimination_Parallel::Bool)
     # Perform 2 rounds of measurement on a hexagon.
     lattice_size=6
     round=2
@@ -356,7 +357,7 @@ function single_hexagon_2rounds(cycle)
     measurement_rounds[2,3,6]=1
 
     for i in 1:cycle*round
-        ISG=update(lattice_size,ISG,measurement_rounds[(i-1)%round+1,:,:])
+        ISG=update(lattice_size,ISG,measurement_rounds[(i-1)%round+1,:,:],Elimination_Parallel,Comm_Parallel)
         println("ISG:",ISG)
         println("ISG_to_string:",ISG_to_string(ISG))
     end
@@ -382,11 +383,22 @@ function test_parallel_comm_matrix(LatticeSize::Int64,ISGSize::Int64)
 
     println("Parallel Version")
     @time calc_comm_matrix!(LatticeSize,OldISG,Measurements,CommMatrix,true)
-
 end
-# single_hexagon_3rounds(3)
-# single_triangle()
-#single_hexagon_2rounds(3)
+
+function test_comm_matrix(LatticeSize::Int64,ISGSize::Int64,cycle=3)
+
+    for i in 1:cycle
+        ISG=rand(Bool,(ISGSize,2*LatticeSize))
+        Measurements=rand(Bool,(ISGSize,2*LatticeSize))
+        CommMatrix=zeros(Bool,(ISGSize,ISGSize))
+
+        calc_comm_matrix!(LatticeSize,ISG,Measurements,CommMatrix,false)
+        
+        println("ISG:",ISG_to_string(ISG))
+        println("Measurements:",ISG_to_string(Measurements))
+        println("CommMatrix:",CommMatrix)
+    end
+end
 
 function snake_growing_lattice(Cycle::Int,LatticeSize::Int)
     round=8
@@ -405,5 +417,24 @@ function test_gaussian_elimination(n)
     # Profile.print()
 end
 
-toric_code_static_multisampling(32,true)
-toric_code_static(32,true)
+function test_dynamic_update_performance(LatticeSize::Int64,ISGSize::Int64,cycle=3)
+    # Assume measurements are of the same order of ISG.
+
+    ISG=rand(Bool,(ISGSize,2*LatticeSize))
+    Measurements=rand(Bool,(ISGSize,2*LatticeSize))
+
+    @time update(LatticeSize,ISG,Measurements,false)
+end
+
+
+single_hexagon_3rounds(2,false,false)
+println("False False")
+single_hexagon_3rounds(2,true,false)
+println("True False")
+single_hexagon_3rounds(2,false,true)
+println("False True")
+single_hexagon_3rounds(2,true,true)
+println("True True")
+
+# test_dynamic_update_performance(2,2)
+# test_dynamic_update_performance(4096,1024)

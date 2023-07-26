@@ -5,17 +5,15 @@ include("dynamic_update.jl")
 
 
 function test(n)
-    a=rand(Bool,(n,n))
-    b=rand(Bool,(n,n))
+    a=zeros(Bool,(n,n))
+    b=ones(Bool,(n,n))
     c=rand(Bool,(n,n))
 
-    @time for i in 1:n
-        @views a[i,:]=b[i,:] .⊻ c[i,:]
-    end
+    # println(gaussian_elimination!(a,b,false))
+    println(gaussian_elimination!(c,a,false))
+    println(c)
+    
 
-    @time for i in 1:n
-        @views a[i,:]=a[i,:] .⊻ b[i,:]
-    end
 end
 
-test(4096)
+test(4)

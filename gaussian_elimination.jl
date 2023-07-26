@@ -18,7 +18,7 @@ Convention: Use Bool type. xor serves as + in F_2.
     @views v[i,:]=v[i,:] .⊻ v[j,:]
 end
 
-function gaussian_elimination!(Vecs::Matrix{Bool},Coefficients::Matrix{Bool})
+function gaussian_elimination!(Vecs::Matrix{Bool},Coefficients::Matrix{Bool},Parallel::Bool)
     # The function overwrites the input vectors with the echoleon vectors and records the coefficients in the second vector.
     # The elimination works in the 2-element finite field. Note that summation is xor.
 
@@ -59,7 +59,7 @@ function gaussian_elimination!(Vecs::Matrix{Bool},Coefficients::Matrix{Bool})
 
         # Eliminate the i-th component of the rest vectors.
         if(found)
-            if(n-cur>32)
+            if(n-cur>32 & Parallel)
                 Threads.@threads for j in cur:n
                     if Vecs[j,i]==true
                         @views Vecs[j,:] = Vecs[j,:] .⊻ Vecs[cur-1,:]
