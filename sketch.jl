@@ -3,7 +3,9 @@
 include("gaussian_elimination.jl")
 include("dynamic_update.jl")
 
+import Profile
 
 a=[1,2,3,4,5]
 
-println(sum(x->x^2,a))
+a[1],a[3]=3,5
+println(string(64)*string(32))

@@ -1,0 +1,218 @@
+Overhead ╎ [+additional indent] Count File:Line; Function
+=========================================================
+     ╎18594  @Base\client.jl:522; _start()
+     ╎ 18594  @Base\client.jl:307; exec_options(opts::Base.JLOp...
+     ╎  18594  @Base\Base.jl:457; include(mod::Module, _path::...
+     ╎   18594  @Base\loading.jl:1959; _include(mapexpr::Function,...
+     ╎    18594  @Base\loading.jl:1899; include_string(mapexpr::ty...
+     ╎     18594  @Base\boot.jl:370; eval
+     ╎    ╎ 18594  ...abilizer\main.jl:150; main()
+     ╎    ╎  18594  ...e\src\Profile.jl:27; macro expansion
+     ╎    ╎   18112  ...bilizer\main.jl:119; straight_growing_ISG(Cyc...
+     ╎    ╎    600    ...namic_update.jl:82; update(LatticeSize::Int6...
+     ╎    ╎     600    ...namic_update.jl:22; calc_comm_matrix!(Lattic...
+     ╎    ╎    ╎ 600    ...gconstructs.jl:168; macro expansion
+     ╎    ╎    ╎  598    ...constructs.jl:115; threading_run(fun::var...
+     ╎    ╎    ╎   598    @Base\task.jl:308; _wait(t::Task)
+     ╎    ╎    ╎    598    ...\condition.jl:125; wait(c::Base.GenericC...
+     ╎    ╎    ╎     598    ...condition.jl:130; wait(c::Base.Generic...
+     ╎    ╎    ╎    ╎ 598    @Base\task.jl:983; wait()
+  593╎    ╎    ╎    ╎  598    @Base\task.jl:974; poptask(W::Base.Int...
+     ╎    ╎    2192   ...namic_update.jl:86; update(LatticeSize::Int6...
+     ╎    ╎    655    ...namic_update.jl:99; update(LatticeSize::Int6...
+     ╎    ╎    14123  ...namic_update.jl:114; update(LatticeSize::Int6...
+ 3319╎    ╎     3319   ..._elimination.jl:42; gaussian_elimination!(Ve...
+ 3525╎    ╎     3730   ..._elimination.jl:43; gaussian_elimination!(Ve...
+     ╎    ╎     1950   ..._elimination.jl:45; gaussian_elimination!(Ve...
+     ╎    ╎    ╎ 578    ...elimination.jl:16; swaprows!
+     ╎    ╎    ╎ 726    ...elimination.jl:17; swaprows!
+     ╎    ╎    ╎  536    ...\broadcast.jl:873; materialize
+     ╎    ╎    ╎   536    ...\broadcast.jl:898; copy
+     ╎    ╎    ╎ 646    ...elimination.jl:18; swaprows!
+    1╎    ╎     625    ..._elimination.jl:46; gaussian_elimination!(Ve...
+ 2740╎    ╎     2811   ..._elimination.jl:53; gaussian_elimination!(Ve...
+     ╎    ╎     1590   ..._elimination.jl:63; gaussian_elimination!(Ve...
+   20╎    ╎    ╎ 1543   ...gconstructs.jl:168; macro expansion
+     ╎    ╎    ╎  736    ...constructs.jl:112; threading_run(fun::va...
+     ╎    ╎    ╎   736    @Base\task.jl:802; schedule
+  696╎    ╎    ╎    696    @Base\task.jl:798; enq_work(t::Task)
+     ╎13431  @Base\task.jl:134; (::Base.var"#702#703"{PyCall...
+    1╎ 13342  @Base\asyncevent.jl:279; macro expansion
+     ╎  13282  @Base\asyncevent.jl:138; _trywait(t::Timer)
+     ╎   13282  @Base\condition.jl:125; wait
+     ╎    13277  @Base\condition.jl:130; wait(c::Base.GenericConditi...
+     ╎     13237  @Base\task.jl:983; wait()
+13161╎    ╎ 13232  @Base\task.jl:974; poptask(W::Base.Intrusive...
+     ╎29565  @Base\task.jl:672; task_done_hook(t::Task)
+     ╎ 28810  @Base\task.jl:983; wait()
+24466╎  28423  @Base\task.jl:974; poptask(W::Base.IntrusiveLin...
+     ╎   3575   @Base\task.jl:966; trypoptask(W::Base.Intrusiv...
+     ╎    1184   @Base\partr.jl:143; multiq_deletemin()
+ 1176╎     1176   @Base\partr.jl:24; cong
+     ╎    1414   @Base\partr.jl:144; multiq_deletemin()
+ 1343╎     1343   @Base\partr.jl:24; cong
+    5╎270437 ...adingconstructs.jl:108; (::Base.Threads.var"#1#2"{va...
+    3╎ 671    ...adingconstructs.jl:130; #40#threadsfor_fun
+     ╎  540    ...dingconstructs.jl:163; (::var"#40#threadsfor_fun#14...
+     ╎ 36243  ...adingconstructs.jl:130; #70#threadsfor_fun
+     ╎  36243  ...dingconstructs.jl:163; (::var"#70#threadsfor_fun#17...
+ 6211╎   6211   ...dynamic_update.jl:0; macro expansion
+     ╎   20467  ...dynamic_update.jl:26; macro expansion
+ 1224╎    1224   @Base\array.jl:971; setindex!
+     ╎    804    @Base\bool.jl:166; +
+     ╎     679    @Base\boot.jl:784; Int64
+  679╎    ╎ 679    @Base\boot.jl:711; toInt64
+  636╎    636    @Base\essentials.jl:0; getindex
+11293╎    11293  @Base\essentials.jl:14; getindex
+  647╎    647    @Base\int.jl:88; *
+     ╎    832    @Base\int.jl:1042; *
+  832╎     832    @Base\int.jl:88; *
+     ╎    4942   @Base\number.jl:42; iszero
+ 4942╎     4942   @Base\promotion.jl:499; ==
+  260╎   1685   ...dynamic_update.jl:32; macro expansion
+    6╎    1425   @Base\range.jl:891; iterate
+ 1419╎     1419   @Base\promotion.jl:499; ==
+   14╎   7849   ...dynamic_update.jl:34; macro expansion
+     ╎    7706   ...abstractarray.jl:1294; getindex
+     ╎     7670   ...tidimensional.jl:861; _getindex
+     ╎    ╎ 3349   ...tidimensional.jl:873; _unsafe_getindex
+     ╎    ╎  3349   ...bstractarray.jl:836; similar
+     ╎    ╎   3349   @Base\array.jl:374; similar
+     ╎    ╎    3349   @Base\boot.jl:486; Array
+ 3349╎    ╎     3349   @Base\boot.jl:477; Array
+     ╎    ╎ 4320   ...tidimensional.jl:875; _unsafe_getindex
+     ╎    ╎  4320   ...idimensional.jl:884; _unsafe_getindex!
+     ╎    ╎   4049   @Base\cartesian.jl:64; macro expansion
+     ╎    ╎    1909   ...idimensional.jl:889; macro expansion
+ 1640╎    ╎     1640   @Base\array.jl:969; setindex!
+     ╎    ╎    1805   ...idimensional.jl:890; macro expansion
+  386╎    ╎     1805   @Base\range.jl:891; iterate
+ 1419╎    ╎    ╎ 1419   ...e\promotion.jl:499; ==
+     ╎ 233518 ...adingconstructs.jl:130; #87#threadsfor_fun
+     ╎  233518 ...dingconstructs.jl:163; (::var"#87#threadsfor_fun#20...
+     ╎   233518 ...abilizer\utils.jl:74; macro expansion
+     ╎    1636   ...c_plot_and_fit.jl:66; calc_entropy(StabGenerators...
+     ╎     1304   @Base\array.jl:584; zeros
+     ╎    ╎ 1304   @Base\boot.jl:487; Array
+ 1304╎    ╎  1304   @Base\boot.jl:479; Array
+     ╎    79789  ...c_plot_and_fit.jl:99; calc_entropy(StabGenerators...
+     ╎     52133  @Base\operators.jl:1283; in
+52133╎    ╎ 52133  @Base\promotion.jl:499; ==
+ 2423╎     2423   @Base\operators.jl:1286; in
+     ╎     25129  @Base\operators.jl:1289; in
+     ╎    ╎ 11596  ...bstractarray.jl:1218; iterate
+     ╎    ╎  11596  @Base\range.jl:891; iterate
+11596╎    ╎   11596  @Base\promotion.jl:499; ==
+ 2033╎    ╎ 2033   ...bstractarray.jl:1219; iterate
+     ╎    ╎ 11494  ...bstractarray.jl:1220; iterate
+     ╎    ╎  11494  @Base\subarray.jl:312; getindex
+11494╎    ╎   11494  ...bstractarray.jl:709; checkbounds
+     ╎    4473   ...c_plot_and_fit.jl:105; calc_entropy(StabGenerators...
+ 1552╎     1552   @Base\array.jl:971; setindex!
+  756╎     756    @Base\essentials.jl:13; getindex
+  785╎     785    @Base\essentials.jl:14; getindex
+ 1380╎     1380   @Base\int.jl:88; *
+     ╎    891    ...c_plot_and_fit.jl:107; calc_entropy(StabGenerators...
+     ╎    26239  ...c_plot_and_fit.jl:115; calc_entropy(StabGenerators...
+     ╎     10234  ...an_elimination.jl:27; gaussian_elimination!(Vecs:...
+10234╎    ╎ 10234  @Base\boot.jl:381; Box
+ 3895╎     3896   ...an_elimination.jl:42; gaussian_elimination!(Vecs:...
+ 4920╎     5190   ...an_elimination.jl:43; gaussian_elimination!(Vecs:...
+ 5273╎     5364   ...an_elimination.jl:53; gaussian_elimination!(Vecs:...
+     ╎    119094 ...c_plot_and_fit.jl:116; calc_entropy(StabGenerators...
+    3╎     742    ...an_elimination.jl:32; gaussian_elimination!(Vecs:...
+  739╎    ╎ 739    @Base\range.jl:891; iterate
+30428╎     30431  ...an_elimination.jl:42; gaussian_elimination!(Vecs:...
+32899╎     34249  ...an_elimination.jl:43; gaussian_elimination!(Vecs:...
+ 1094╎    ╎ 1094   @Base\essentials.jl:14; getindex(::Matrix{Bool}, ...
+     ╎     14679  ...an_elimination.jl:45; gaussian_elimination!(Vecs:...
+     ╎    ╎ 4233   ...n_elimination.jl:16; swaprows!
+     ╎    ╎  1702   ...bstractarray.jl:1397; setindex!
+     ╎    ╎   1698   ...idimensional.jl:916; _setindex!
+     ╎    ╎    1689   ...idimensional.jl:927; _unsafe_setindex!(::Inde...
+     ╎    ╎     1585   @Base\cartesian.jl:64; macro expansion
+     ╎    ╎    ╎ 1557   ...dimensional.jl:933; macro expansion
+   71╎    ╎    ╎  925    ...e\bitarray.jl:362; iterate
+     ╎    ╎    ╎   854    ...\operators.jl:416; >=
+  854╎    ╎    ╎    854    @Base\int.jl:488; <=
+     ╎    ╎    ╎  632    ...e\bitarray.jl:363; iterate
+     ╎    ╎  2531   @Base\broadcast.jl:873; materialize
+     ╎    ╎   2531   @Base\broadcast.jl:898; copy
+     ╎    ╎    2421   @Base\broadcast.jl:926; copyto!
+     ╎    ╎     2150   ...e\broadcast.jl:991; copyto!
+    1╎    ╎    ╎ 1917   @Base\simdloop.jl:75; macro expansion
+ 1916╎    ╎    ╎  1916   @Base\int.jl:83; <
+     ╎    ╎ 4742   ...n_elimination.jl:17; swaprows!
+     ╎    ╎  1630   ...bstractarray.jl:1397; setindex!
+    3╎    ╎   1627   ...idimensional.jl:916; _setindex!
+     ╎    ╎    1615   ...idimensional.jl:927; _unsafe_setindex!(::Inde...
+     ╎    ╎     1531   @Base\cartesian.jl:64; macro expansion
+     ╎    ╎    ╎ 1498   ...dimensional.jl:933; macro expansion
+   76╎    ╎    ╎  913    ...e\bitarray.jl:362; iterate
+     ╎    ╎    ╎   837    ...\operators.jl:416; >=
+  837╎    ╎    ╎    837    @Base\int.jl:488; <=
+     ╎    ╎    ╎  585    ...e\bitarray.jl:363; iterate
+     ╎    ╎  3106   @Base\broadcast.jl:873; materialize
+     ╎    ╎   3106   @Base\broadcast.jl:898; copy
+     ╎    ╎    1996   @Base\broadcast.jl:926; copyto!
+     ╎    ╎     1693   ...e\broadcast.jl:991; copyto!
+    4╎    ╎    ╎ 1424   @Base\simdloop.jl:75; macro expansion
+ 1420╎    ╎    ╎  1420   @Base\int.jl:83; <
+     ╎    ╎    1110   @Base\broadcast.jl:211; similar
+     ╎    ╎     1110   ...e\broadcast.jl:214; similar
+     ╎    ╎    ╎ 1110   ...stractarray.jl:881; similar
+     ╎    ╎    ╎  1110   ...tractarray.jl:882; similar
+     ╎    ╎    ╎   1110   ...e\bitarray.jl:71; BitArray
+     ╎    ╎    ╎    672    ...e\bitarray.jl:37; BitArray
+  672╎    ╎    ╎     672    @Base\boot.jl:477; Array
+     ╎    ╎ 5704   ...n_elimination.jl:18; swaprows!
+     ╎    ╎  1627   ...bstractarray.jl:1397; setindex!
+    6╎    ╎   1626   ...idimensional.jl:916; _setindex!
+     ╎    ╎    1619   ...idimensional.jl:927; _unsafe_setindex!(::Inde...
+     ╎    ╎     1533   @Base\cartesian.jl:64; macro expansion
+     ╎    ╎    ╎ 1506   ...dimensional.jl:933; macro expansion
+   74╎    ╎    ╎  895    ...e\bitarray.jl:362; iterate
+     ╎    ╎    ╎   821    ...\operators.jl:416; >=
+  821╎    ╎    ╎    821    @Base\int.jl:488; <=
+     ╎    ╎    ╎  611    ...e\bitarray.jl:363; iterate
+     ╎    ╎  4074   @Base\broadcast.jl:873; materialize
+     ╎    ╎   4074   @Base\broadcast.jl:898; copy
+     ╎    ╎    1975   @Base\broadcast.jl:926; copyto!
+     ╎    ╎     1668   ...e\broadcast.jl:991; copyto!
+    2╎    ╎    ╎ 1428   @Base\simdloop.jl:75; macro expansion
+ 1426╎    ╎    ╎  1426   @Base\int.jl:83; <
+     ╎    ╎    2099   @Base\broadcast.jl:211; similar
+     ╎    ╎     2099   ...e\broadcast.jl:214; similar
+     ╎    ╎    ╎ 2099   ...stractarray.jl:881; similar
+     ╎    ╎    ╎  2099   ...tractarray.jl:882; similar
+     ╎    ╎    ╎   2099   ...e\bitarray.jl:71; BitArray
+     ╎    ╎    ╎    2020   ...e\bitarray.jl:37; BitArray
+ 2020╎    ╎    ╎     2020   @Base\boot.jl:477; Array
+    6╎     3963   ...an_elimination.jl:46; gaussian_elimination!(Vecs:...
+     ╎    ╎ 2525   ...n_elimination.jl:16; swaprows!
+     ╎    ╎  2355   @Base\broadcast.jl:873; materialize
+     ╎    ╎   2355   @Base\broadcast.jl:898; copy
+     ╎    ╎    1870   @Base\broadcast.jl:211; similar
+     ╎    ╎     1870   ...e\broadcast.jl:214; similar
+     ╎    ╎    ╎ 1870   ...stractarray.jl:881; similar
+     ╎    ╎    ╎  1870   ...tractarray.jl:882; similar
+     ╎    ╎    ╎   1870   ...e\bitarray.jl:71; BitArray
+     ╎    ╎    ╎    1868   ...e\bitarray.jl:37; BitArray
+ 1868╎    ╎    ╎     1868   @Base\boot.jl:477; Array
+     ╎    ╎ 820    ...n_elimination.jl:17; swaprows!
+     ╎    ╎  659    @Base\broadcast.jl:873; materialize
+     ╎    ╎   659    @Base\broadcast.jl:898; copy
+     ╎    ╎ 612    ...n_elimination.jl:18; swaprows!
+30856╎     31229  ...an_elimination.jl:53; gaussian_elimination!(Vecs:...
+     ╎     3165   ...an_elimination.jl:63; gaussian_elimination!(Vecs:...
+  551╎    ╎ 551    ...ingconstructs.jl:130; macro expansion
+   26╎    ╎ 2614   ...ingconstructs.jl:168; macro expansion
+     ╎    ╎  1143   ...ngconstructs.jl:108; threading_run(fun::var"#4...
+     ╎    ╎   1143   @Base\task.jl:5; Task
+     ╎    ╎    1143   @Base\task.jl:5; Task
+  971╎    ╎     971    @Base\boot.jl:447; _Task
+     ╎    ╎  741    ...ngconstructs.jl:115; threading_run(fun::var"#4...
+   15╎    ╎   682    @Base\task.jl:308; _wait(t::Task)
+    1╎    ╎    667    @Base\condition.jl:125; wait(c::Base.GenericCond...
+    2╎    ╎     648    ...e\condition.jl:130; wait(c::Base.GenericCon...
+Total snapshots: 335703. Utilization: 91% across all threads and tasks. Use the `groupby` kwarg to break down by thread and/or task.

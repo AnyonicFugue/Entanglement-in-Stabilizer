@@ -5,7 +5,6 @@ import CurveFit
 # import Profile
 # import StatProfilerHTML
 
-debug=false
 
 function toric_code_static(l::Int64,Parallel::Bool)
     # Note that the d.o.f. are on the edges, not on the vertices.
@@ -406,36 +405,6 @@ function single_triangle()
     end
 end
 
-function ISG_to_string(ISG::Array{Bool,2})
-    # Convert the ISG to a string.
-    # The first index is the index of the stabilizer. The second index is the index of the d.o.f.
-    # The d.o.f. are ordered as X1,Z1,X2,Z2,...,Xn,Zn.
-
-    n=length(ISG[:,1])
-    lattice_size=Int(length(ISG[1,:])/2)
-    ISG_string=Vector{String}(undef,0)
-    
-    for i in 1:n
-        str=String[]
-       
-        for k in 1:lattice_size
-            if (ISG[i,2*k-1])&&(!ISG[i,2*k])
-                push!(str,"X")
-                push!(str,string(k))
-            elseif (!ISG[i,2*k-1])&&(ISG[i,2*k])
-                push!(str,"Z")
-                push!(str,string(k))
-            elseif (ISG[i,2*k-1])&&(ISG[i,2*k])
-                push!(str,"Y")
-                push!(str,string(k))
-            end  
-        end
-       
-        push!(ISG_string,join(str))
-    end
-    return ISG_string
-end
-
 function single_hexagon_3rounds(cycle,Comm_Parallel::Bool,Elimination_Parallel::Bool)
     # Perform 3 rounds of measurement on a hexagon.
     lattice_size=6
@@ -703,5 +672,5 @@ function test_dynamic_update_performance(LatticeSize::Int64,ISGSize::Int64,cycle
     @time update(LatticeSize,ISG,Measurements,false)
 end
 
-
+debug=false
 straight_growing_ISG(2,4,false)
