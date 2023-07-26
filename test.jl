@@ -5,6 +5,8 @@ import CurveFit
 # import Profile
 # import StatProfilerHTML
 
+debug=false
+
 function toric_code_static(l::Int64,Parallel::Bool)
     # Note that the d.o.f. are on the edges, not on the vertices.
     # The stabilizers are ordered as X1,Z1,X2,Z2,...,Xn,Zn.
@@ -547,8 +549,136 @@ function test_comm_matrix(LatticeSize::Int64,ISGSize::Int64,cycle=3)
     end
 end
 
-function snake_growing_lattice(Cycle::Int,LatticeSize::Int)
+function straight_growing_ISG(Cycle::Int,LatticeSideLength::Int,Parallel::Bool)
+    round=6
+
+    # The vertices are 3-colored. We start from the ISG of single edges on the left.
+    # The ISG evolves like this: We first measure a edge connecting the existing one, then measure the vertex between the new edge and the old edge it connects.
+        # Note that the vertex anti-commute with a single edge and commute with 2 edges, thus it preserves the large string but eliminate individual edges.
+        # Measure Z for vertices and X for edges.
+
+    n_vertex=LatticeSideLength*LatticeSideLength
+    LatticeSize=2*n_vertex # The number of edges is twice the number of vertices.
+    n_period=Int(floor(LatticeSideLength/3))
+
+    ISG=zeros(Bool,(LatticeSideLength,2*LatticeSize)) 
+        # Each edge has a d.o.f., thus we need two indices, one for X and one for Z.
+        # We start by single edges on the left.
+    Measurement=zeros(Bool,(round,n_period*LatticeSideLength,2*LatticeSize)) 
+        # The first index is the round. The second index is the measurements in the round. The third index records the actions of the measurements.
+        # In column each round, we measure one in each period.
+    
+    # Initialize ISG
+    for i in 1:LatticeSideLength
+        # The vertex has precisely number i!
+        n=2*i-1 # The edge on the right of the vertex. 
+        ISG[i,2*n-1]=true # Measure X on the edge.
+    end
+
+    if(debug)
+        println("ISG",ISG_to_string(ISG))
+    end
+
+    # Set measurements on each round
+    for i in 1:round
+        # Measure edges in odd rounds.
+        cur=1
+
+        if(i%2==1)
+            k=Int((i+1)/2) # k=1 means measure B edges, k=2 means C, k=3 means A.
+
+            for j in 1:n_period # Which period is the measurement in.
+                if (j==1 && k==3) # The leftmost A-edge should not be measured.
+                    continue
+                end
+
+                for y in 1:LatticeSideLength 
+                    x=3*(j-1)+(k%3+1) # e.g. When j=1,k=1, x=2, which is the B edge (right edge of the x=2 vertex) in the first period. 
+                    m=(x-1)*LatticeSideLength+y # The vertex
+
+                    if(x<LatticeSideLength) # Not on the rightmost
+                        Measurement[i,cur,2*(2*m-1)-1]=true # Measure X on the edge. Right edge is 2*m-1 and X on the edge is 2*(2*m-1)-1.
+                        cur+=1
+                    end
+                end
+            end
+        end
+
+        # Measure vertices in even rounds.
+        if(i%2==0)
+            k=Int(i/2) # k=1 means measure B vertices (the vertex on the left of B edges), k=2 means C, k=3 means A.
+
+            for j in 1:n_period
+                if (j==1 && k==3) # The leftmost A-vertex should not be measured.
+                    continue
+                end
+
+                for y in 1:LatticeSideLength 
+                    x=3*(j-1)+(k%3+1) # e.g. When j=1,k=1, x=2, which is the B vertex in the first period. 
+                    m=(x-1)*LatticeSideLength+y # The vertex
+
+                    left_m=(x-2)*LatticeSideLength+y # The vertex on the left of the vertex m.
+                    up_m=(x-1)*LatticeSideLength+y-1 # The vertex on the top of the vertex m.
+
+                    # The left edge, i.e. the right edge of the left vertex, is always measured, since we've already excluded the leftmost vertex.
+                    Measurement[i,cur,2*(2*left_m-1)]=true # Left edge is 2*left_m-1 and Z on the edge is 2*(2*left_m-1).
+
+                    if(x<LatticeSideLength) # Not on the rightmost
+                        Measurement[i,cur,2*(2*m-1)]=true # Measure Z on the right edge of the vertex. Right edge is 2*m-1 and Z on the edge is 2*(2*m).
+                    end
+
+                    if(y<LatticeSideLength) # Not on the downmost
+                        Measurement[i,cur,2*(2*m)]=true # Measure Z on the down edge of the vertex. Down edge is 2*m and Z on the edge is 2*(2*m-1).
+                    end
+
+                    if(y>1) # Not on the upmost
+                        Measurement[i,cur,2*(2*up_m)]=true # Measure Z on the up edge of the vertex. Up edge (down edge of the upper vertex) is 2*up_m and Z on the edge is 2*(2*up_m).
+                    end
+
+                    cur+=1
+                end
+            end
+        end
+    end
+
+    if(debug)
+        for i in 1:round
+            println("Measurement in round ",i,":",ISG_to_string(Measurement[i,:,:]))
+        end
+        println()
+    end
+
+    measurement_vector=Vector{Matrix{Bool}}(undef,0)
+    for i in 1:round
+        push!(measurement_vector,Measurement[i,:,:])
+    end
+
+
+    # Start updating
+    for i in 1:Cycle
+
+        println("Cycle ",i)
+
+        for j in 1:round
+            @views ISG=update(LatticeSize,ISG,measurement_vector[j],Parallel,Parallel)
+            # println("ISG:",ISG)
+            println("ISG_to_string in round ",j,": ",ISG_to_string(ISG))
+        end
+        println()
+    end
+end
+
+function snake_growing_ISG(Cycle::Int,LatticeSideLength::Int)
     round=8
+
+    # The lattice is 4-colored. We start from the ISG of single edges on the left.
+    # The ISG evolves like this: We first measure a edge connecting the existing one, then measure the vertex between the new edge and the old edge it connects.
+        # Note that the vertex anti-commute with a single edge and commute with 2 edges, thus it preserves the large string but eliminate individual edges.
+
+    n_vertex=LatticeSideLength*LatticeSideLength
+    LatticeSize=2*n_vertex # The number of edges is twice the number of vertices.
+
+    ISG=zeros(Bool,(round,2*LatticeSize)) # Each edge has a d.o.f., thus we need two indices, one for X and one for Z.
 end
 
 function test_gaussian_elimination(n)
@@ -574,8 +704,4 @@ function test_dynamic_update_performance(LatticeSize::Int64,ISGSize::Int64,cycle
 end
 
 
-toric_code_static(16,false)
-
-
-# test_dynamic_update_performance(2,2)
-# test_dynamic_update_performance(4096,1024)
+straight_growing_ISG(2,4,false)
