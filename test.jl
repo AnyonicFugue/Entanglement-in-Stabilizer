@@ -2,8 +2,8 @@ include("calc_plot_and_fit.jl")
 include("dynamic_update.jl")
 
 import CurveFit
-import Profile
-import StatProfilerHTML
+# import Profile
+# import StatProfilerHTML
 
 function toric_code_static(l::Int64,Parallel::Bool)
     # Note that the d.o.f. are on the edges, not on the vertices.
@@ -574,7 +574,7 @@ function test_dynamic_update_performance(LatticeSize::Int64,ISGSize::Int64,cycle
 end
 
 
-toric_code_static_recombination(24,true)
+toric_code_static(16,false)
 
 
 # test_dynamic_update_performance(2,2)

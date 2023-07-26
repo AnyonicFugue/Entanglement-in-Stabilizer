@@ -177,21 +177,36 @@ function sample_squares(LatticeSideLength::Int64,RegionSideLength::Int64,SampleI
 
 end
 
+function calc_fit_r2(xArr::Vector{Int64},yArr::Vector{Float32},a::Float32,b::Float32)
+    # Calculate the r2 of the fit.
+
+    # r2=1-(sum(yArr-(a*xArr.+b))^2)/(sum(yArr-mean(yArr))^2)
+
+    
+
+    r2=1-(sum(x->x^2,yArr.-(a.*xArr.+b))/(sum(x->x^2,yArr.-(sum(yArr)/length(yArr)))))
+    return r2
+end
+
 function plot_and_fit(EntropyArr::Vector{Float32},VolumeArr::Vector{Int64},AreaArr::Vector{Int64})
     # Plot entropy vs area and volume.
 
 
-    bv,av=cf.linear_fit(VolumeArr,EntropyArr)
-    ba,aa=cf.linear_fit(AreaArr,EntropyArr)
 
-    println("Area-law fitting: y=",aa,"x+",ba)
+    bv,av=cf.linear_fit(VolumeArr,EntropyArr)
+    r2v=calc_fit_r2(VolumeArr,EntropyArr,av,bv)
+
+    ba,aa=cf.linear_fit(AreaArr,EntropyArr)
+    r2a=calc_fit_r2(AreaArr,EntropyArr,aa,ba)
+
+    println("Area-law fitting: y=",aa,"x+",ba," r2=",r2a)
     plt.plot(AreaArr,EntropyArr,AreaArr,aa*AreaArr.+ba)
     
     plt.title("Entropy vs Area")
     plt.grid()
     plt.show()
     
-    println("Volume-law fitting: y=",av,"x+",bv)
+    println("Volume-law fitting: y=",av,"x+",bv," r2=",r2v)
     plt.plot(VolumeArr,EntropyArr,VolumeArr,av*VolumeArr.+bv)
     plt.title("Entropy vs Volume")
     plt.grid()
@@ -203,10 +218,14 @@ function fit(EntropyArr::Vector{Float32},VolumeArr::Vector{Int64},AreaArr::Vecto
 
 
     bv,av=cf.linear_fit(VolumeArr,EntropyArr)
+    r2v=calc_fit_r2(VolumeArr,EntropyArr,av,bv)
+
     ba,aa=cf.linear_fit(AreaArr,EntropyArr)
+    r2a=calc_fit_r2(AreaArr,EntropyArr,aa,ba)
 
-    println("Area-law fitting: y=",aa,"x+",ba)
 
-    println("Volume-law fitting: y=",av,"x+",bv)
+    println("Area-law fitting: y=",aa,"x+",ba," r2=",r2a)
+
+    println("Volume-law fitting: y=",av,"x+",bv," r2=",r2v)
 
 end
