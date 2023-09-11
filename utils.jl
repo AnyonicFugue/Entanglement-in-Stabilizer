@@ -1,6 +1,6 @@
 
 
-function ISG_to_string(ISG::Array{Bool,2},MinLength::Int)
+function ISG_to_string(ISG::Array{Bool,2},MinLength::Int,Width::Int,Depth::Int,Display_Coordinate::Bool=False)
     # Convert the ISG to a string.
     # The first index is the index of the stabilizer. The second index is the index of the d.o.f.
     # The d.o.f. are ordered as X1,Z1,X2,Z2,...,Xn,Zn.
@@ -8,30 +8,79 @@ function ISG_to_string(ISG::Array{Bool,2},MinLength::Int)
     n=length(ISG[:,1])
     lattice_size=Int(length(ISG[1,:])/2)
     ISG_string=Vector{String}(undef,0)
-    
-    for i in 1:n
-        str=String[]
-        current_len=0
-        for k in 1:lattice_size
-            if (ISG[i,2*k-1])&&(!ISG[i,2*k])
-                push!(str,"X")
-                push!(str,string(k))
-                current_len+=1
-            elseif (!ISG[i,2*k-1])&&(ISG[i,2*k])
-                push!(str,"Z")
-                push!(str,string(k))
-                # current_len+=1
-            elseif (ISG[i,2*k-1])&&(ISG[i,2*k])
-                push!(str,"Y")
-                push!(str,string(k))
-                current_len+=1
-            end  
+
+    if(Display_Coordinate)
+        for i in 1:n
+            str=String[]
+            current_len=0
+            for k in 1:lattice_size
+
+                # k = Width*(y-1) + x
+                # Calculate x and y from k
+                x=(k-1)%Width+1
+                y=Int((k-x)/Width)+1
+
+                if (ISG[i,2*k-1])&&(!ISG[i,2*k])
+                    push!(str,"X")
+
+                    push!(str,"(")
+                    push!(str,string(x))
+                    push!(str,",")
+                    push!(str,string(y))
+                    push!(str,")")
+                    current_len+=1
+                elseif (!ISG[i,2*k-1])&&(ISG[i,2*k])
+                    push!(str,"Z")
+
+                    push!(str,"(")
+                    push!(str,string(x))
+                    push!(str,",")
+                    push!(str,string(y))
+                    push!(str,")")
+                    current_len+=1
+                elseif (ISG[i,2*k-1])&&(ISG[i,2*k])
+                    push!(str,"Y")
+
+                    push!(str,"(")
+                    push!(str,string(x))
+                    push!(str,",")
+                    push!(str,string(y))
+                    push!(str,")")
+                    current_len+=1
+                end  
+            end
+            
+            if(current_len>=MinLength)
+                push!(ISG_string,join(str)*",l="*string(current_len))
+            end
         end
-        
-        if(current_len>=MinLength)
-            push!(ISG_string,join(str)*",l="*string(current_len))
+    else
+        for i in 1:n
+            str=String[]
+            current_len=0
+            for k in 1:lattice_size
+                if (ISG[i,2*k-1])&&(!ISG[i,2*k])
+                    push!(str,"X")
+                    push!(str,string(k))
+                    current_len+=1
+                elseif (!ISG[i,2*k-1])&&(ISG[i,2*k])
+                    push!(str,"Z")
+                    push!(str,string(k))
+                    current_len+=1
+                elseif (ISG[i,2*k-1])&&(ISG[i,2*k])
+                    push!(str,"Y")
+                    push!(str,string(k))
+                    current_len+=1
+                end  
+            end
+            
+            if(current_len>=MinLength)
+                push!(ISG_string,join(str)*",l="*string(current_len))
+            end
         end
     end
+    
+
     return ISG_string
 end
 

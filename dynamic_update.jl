@@ -64,12 +64,8 @@ function calc_comm_matrix!(LatticeSize::Int64,OldISG::Array{Bool,2},Measurements
 end
 
 function update(LatticeSize::Int64,OldISG::Array{Bool,2},Measurements::Array{Bool,2},Elimination_Parallel::Bool=false,Comm_Parallel::Bool=false)
-    # The data structure: First index is the index of the stablizer. The second index is the dimension in the vector space.
-        # Note that for n^th d.o.f. (starting from 1), 2*n-1 is for Pauli_X, 2*n is for Pauli_Z.
 
-
-    # OldISG records the generators.
-    # The function overwrites the new generators into NewISG, thus it must be a different variable from OldISG.
+    # Returns a new ISG, not overwriting.
 
     # Step 1. Find the surviving element of the OldISG under measurements.
     # This is achieved by finding the zero space of by Gaussian elimination. i.e. (rank+1)-th to n-th vectors constitute a basis of the zero space.
