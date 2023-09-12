@@ -1,5 +1,6 @@
 include("calc_plot_and_fit.jl")
 include("dynamic_update.jl")
+include("utils.jl")
 
 import CurveFit
 # import Profile
@@ -673,4 +674,5 @@ function test_dynamic_update_performance(LatticeSize::Int64,ISGSize::Int64,cycle
 end
 
 debug=false
-straight_growing_ISG(2,4,false)
+
+

@@ -138,3 +138,66 @@ function sample_squares(LatticeSideLength::Int64,RegionSideLength::Int64,SampleI
     return sum(entropy_arr)/n_sample
 
 end
+
+function N_nontrivial_sites(g::Array{Bool})
+    # This function calculates the number of sites where action of g is nontrivial.
+
+    n=0
+    l=Int(size(g,1)/2)
+
+    for i in 1:l
+        if(g[2*i-1]||g[2*i])
+            n+=1
+        end
+    end
+
+    return n
+end
+
+function Find_local_generators!(ISG::Array{Bool,2})
+    # ISG stores the generators for the stabilizer group, which could be viewed as a basis for the vector space of the 2-element field. The stabilizer group is therefore a vector space spanned by these generators (i.e. basis elements).
+    # The entries of the basis elements are either 0 or 1, with the addition rule 1+1=0.
+    # The function performs elementary transformations to the basis vectors (i.e. add one vector to another) to find a basis such that the total number of entries with value 1 is minimized.
+
+    n=size(ISG,1) # The number of stabilizers.
+
+    # First, calculate the total number of 1 in all basis elements.
+    total_1=0
+    for i in 1:n
+        total_1+=sum(ISG[i,:])
+    end
+
+    # Then, perform elementary transformations to the basis vectors to minimize the total number of 1.
+
+    flipped=true
+
+
+    while(flipped)
+
+        flipped=false
+
+        for i in 1:n
+            for j in 1:n
+                if(i!=j)
+                    after_generator=zeros(Bool,1,size(ISG,2))
+                    after_generator[1,:]=ISG[j,:] .⊻ ISG[i,:] # The basis element after adding the i-th basis element to the j-th basis element.
+                    after_weight=sum(after_generator)
+
+                    if(sum(ISG[j,:])>after_weight)
+                        # If the total number of 1 in the j-th basis element is larger than that in the j-th basis element after adding the i-th basis element, then perform the transformation.
+                        ISG[j,:] = after_generator # Add the i-th basis element to the j-th basis element.
+                        flipped=true
+                    elseif(sum(ISG[j,:])==after_weight)
+                        # If the total number of 1 in the j-th basis element is equal to that in the j-th basis element after adding the i-th basis element, then compare the number of nontrivial sites.
+                        if(N_nontrivial_sites(ISG[j,:])>N_nontrivial_sites(after_generator[1,:]))
+                            @views ISG[j,:] = after_generator[1,:] # Add the i-th basis element to the j-th basis element.
+                            flipped=true
+                        end
+                    end
+
+                end
+            end
+        end
+    end
+
+end
