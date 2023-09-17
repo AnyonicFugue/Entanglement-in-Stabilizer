@@ -92,7 +92,7 @@ function plot_stabilizer_generators(Width::Int,Depth::Int,Stabilizers::Array{Boo
 end
 
 
-function Calculate_boundary_stabilizers(;Width::Int,Depth::Int,BoundaryOnly::Bool=false,SeeFullLattice::Bool=true,Plot::Bool=false,FindLocalGenerators::Bool=true,IsXMeasurement::Bool,IsSmoothBoundary::Bool)
+function Calculate_boundary_stabilizers(Width::Int,Depth::Int;BoundaryOnly::Bool=false,SeeFullLattice::Bool=true,Plot::Bool=false,FindLocalGenerators::Bool=true,IsXMeasurement::Bool,IsSmoothBoundary::Bool,PrintISG::Bool=false)
     # The lattice is put on a cylinder, i.e. a periodic boundary condition in the x direction and an open boundary condition in the y direction.
     # The lower boundary is a smooth boundary and the upper boundary is a rough boundary.
         # The lower boundary has y coordinate 1. The upper boundary has y coordinate Depth.
@@ -138,19 +138,19 @@ function Calculate_boundary_stabilizers(;Width::Int,Depth::Int,BoundaryOnly::Boo
     if(SeeFullLattice)
         new_SG=new_SG[1:Width,:] # Truncate the stabilizers thus we can see the structure on the full lattice
     end
-    # println(ISG_to_string(new_SG,1,Width,Depth,true))
 
 
     if(FindLocalGenerators)
         Find_local_generators!(new_SG)
     end
-    # println("Transform to local generators")
-    # println(ISG_to_string(new_SG,1,Width,Depth,true))
+
 
     if(BoundaryOnly)
         new_SG=new_SG[1:Width,:] # Truncate the stabilizer to leave only the boundary
-        # println(ISG_to_string(new_SG,1,Width,Depth,true))
-        # println(size(new_SG))
+    end
+
+    if(PrintISG)
+        println(ISG_to_string(new_SG,1,Width,Depth))
     end
 
     title="Smooth Boundary X,Width="*string(Width)*",Depth="*string(Depth)
@@ -245,16 +245,25 @@ end
 
 # smooth_boundary_Y(20,48,false)
 
-function sample_EE(Width::Int,StartDepth::Int,EndDepth::Int)
+function sample_EE(Width::Int,StartDepth::Int,EndDepth::Int,IsX::Bool,IsSmooth::Bool,PrintInfo::Bool=false)
     # The function calculates the entanglement entropy of the boundary stabilizers.
     
     # The entanglement entropy is calculated for the region between StartDepth and EndDepth.
     # The function returns a vector of entanglement entropies for each depth.
     EE_arr=zeros(EndDepth-StartDepth+1)
 
-    for depth in StartDepth:EndDepth
+    Threads.@threads for depth in StartDepth:EndDepth
         # Calculate the entanglement entropy for the region between StartDepth and EndDepth.
-        EE_arr[depth-StartDepth+1]=Evaluate_EE(smooth_boundary_X(Width,depth,true,true,false,false),Int(floor(Width/3)))
+        BoundaryISG=Calculate_boundary_stabilizers(Width,depth,BoundaryOnly=true,IsXMeasurement=IsX,IsSmoothBoundary=IsSmooth)
+
+        if(PrintInfo)
+            coeff=zeros(Bool,Width,Width)
+            print("rank=")
+            println(gaussian_elimination!(BoundaryISG,coeff,true))
+            println(ISG_to_string(BoundaryISG,1,Width,1))
+        end
+
+        EE_arr[depth-StartDepth+1]=Evaluate_EE(BoundaryISG,Int(floor(Width/2)))
     end
 
     # Plot entanglement entropy vs depth by Pyplot package
@@ -269,5 +278,4 @@ function sample_EE(Width::Int,StartDepth::Int,EndDepth::Int)
 end
 
 
-Calculate_boundary_stabilizers(Width=8,Depth=10,Plot=true,IsXMeasurement=false,IsSmoothBoundary=true)
-
+println(sample_EE(24,16,48,false,true))

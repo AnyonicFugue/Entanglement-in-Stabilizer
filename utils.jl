@@ -1,6 +1,6 @@
 
 
-function ISG_to_string(ISG::Array{Bool,2},MinLength::Int,Width::Int,Depth::Int,Display_Coordinate::Bool=False)
+function ISG_to_string(ISG::Array{Bool,2},MinLength::Int,Width::Int,Depth::Int,Display_Coordinate::Bool=true)
     # Convert the ISG to a string.
     # The first index is the index of the stabilizer. The second index is the index of the d.o.f.
     # The d.o.f. are ordered as X1,Z1,X2,Z2,...,Xn,Zn.
@@ -216,9 +216,24 @@ function Evaluate_EE(ISG::Array{Bool,2},NSite::Int)
     coefficients=zeros(Bool,n_stab,n_stab) # The coefficient matrix to be used in gaussian_elimination.
     rank=gaussian_elimination!(ISG_A,coefficients,true) # The rank equals the total rank minus the dimension of the zero space of truncated partial stabilizers in A (the number of stabilizers has support only in the region B).
     # rank = |G|-|G_B|=Width-|G_B|
-    EE=rank-NSite # EE = N_A-|G_A|=N_B-|G_B|
+    EE_A=rank-NSite # EE = N_A-|G_A|=N_B-|G_B|
 
-    return EE
+
+
+    # Calculate the stabilizer group inside region B and obtain EE.
+
+    ISG_B=ISG[:,2*NSite+1:double_Width] # The stabilizer group inside the region.
+    
+    coefficients=zeros(Bool,n_stab,n_stab) # The coefficient matrix to be used in gaussian_elimination.
+    rank=gaussian_elimination!(ISG_B,coefficients,true) # The rank equals the total rank minus the dimension of the zero space of truncated partial stabilizers in B (the number of stabilizers has support only in the region A).
+
+    # rank = |G|-|G_A|=Width-|G_A|
+    EE_B=rank-(Width-NSite) # EE = N_A-|G_A|=N_B-|G_B|
+
+    println(EE_A)
+    println(EE_B)
+
+    return (EE_A+EE_B)/2
 
 
 end
