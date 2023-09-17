@@ -202,7 +202,7 @@ function Find_local_generators!(ISG::Array{Bool,2})
 
 end
 
-function Evaluate_EE(ISG::Array{Bool,2},NSite::Int)
+function Evaluate_EE(ISG::Array{Bool,2},NSite::Int,Parallel::Bool=false)
     # The function uses Gaussian elimination to calculate the rank of the subgroup of ISG that acts trivially out of sites {1,...,n}.
 
     double_Width=size(ISG,2) # 2*Width
@@ -214,26 +214,11 @@ function Evaluate_EE(ISG::Array{Bool,2},NSite::Int)
     ISG_A=ISG[:,1:2*NSite] # The stabilizer group inside the region.
     
     coefficients=zeros(Bool,n_stab,n_stab) # The coefficient matrix to be used in gaussian_elimination.
-    rank=gaussian_elimination!(ISG_A,coefficients,true) # The rank equals the total rank minus the dimension of the zero space of truncated partial stabilizers in A (the number of stabilizers has support only in the region B).
+    rank=gaussian_elimination!(ISG_A,coefficients,Parallel) # The rank equals the total rank minus the dimension of the zero space of truncated partial stabilizers in A (the number of stabilizers has support only in the region B).
     # rank = |G|-|G_B|=Width-|G_B|
     EE_A=rank-NSite # EE = N_A-|G_A|=N_B-|G_B|
 
-
-
-    # Calculate the stabilizer group inside region B and obtain EE.
-
-    ISG_B=ISG[:,2*NSite+1:double_Width] # The stabilizer group inside the region.
-    
-    coefficients=zeros(Bool,n_stab,n_stab) # The coefficient matrix to be used in gaussian_elimination.
-    rank=gaussian_elimination!(ISG_B,coefficients,true) # The rank equals the total rank minus the dimension of the zero space of truncated partial stabilizers in B (the number of stabilizers has support only in the region A).
-
-    # rank = |G|-|G_A|=Width-|G_A|
-    EE_B=rank-(Width-NSite) # EE = N_A-|G_A|=N_B-|G_B|
-
-    println(EE_A)
-    println(EE_B)
-
-    return (EE_A+EE_B)/2
+    return EE_A
 
 
 end

@@ -1,7 +1,7 @@
 include("utils.jl")
 include("dynamic_update.jl")
 import PyPlot
-
+import Profile
 
 plot_round=3
 
@@ -131,23 +131,22 @@ function Calculate_boundary_stabilizers(Width::Int,Depth::Int;BoundaryOnly::Bool
     # println(ISG_to_string(Initial_SG,1,Width,Depth,true))
     # plot_stabilizer_generators(Width,Depth,Initial_SG)
 
-    new_SG=update(lattice_size,Initial_SG,measurements)
+    new_SG=update(lattice_size,Initial_SG,measurements,true,true)
     # println("New_SG")
     
 
-    if(SeeFullLattice)
-        new_SG=new_SG[1:Width,:] # Truncate the stabilizers thus we can see the structure on the full lattice
+    if(BoundaryOnly)
+        new_SG=new_SG[1:Width,1:2*Width]
+    else
+        if(SeeFullLattice)
+            new_SG=new_SG[1:Width,:] # Truncate the stabilizers thus we can see the structure on the full lattice
+        end
     end
-
 
     if(FindLocalGenerators)
         Find_local_generators!(new_SG)
     end
 
-
-    if(BoundaryOnly)
-        new_SG=new_SG[1:Width,:] # Truncate the stabilizer to leave only the boundary
-    end
 
     if(PrintISG)
         println(ISG_to_string(new_SG,1,Width,Depth))
@@ -159,11 +158,8 @@ function Calculate_boundary_stabilizers(Width::Int,Depth::Int;BoundaryOnly::Bool
         plot_stabilizer_generators(Width,Depth,new_SG,plot_round,title)
     end
 
-    if(BoundaryOnly)
-        return new_SG[:,1:2*Width]
-    else
-        return new_SG
-    end
+
+    return new_SG
 end
 
 
@@ -252,9 +248,9 @@ function sample_EE(Width::Int,StartDepth::Int,EndDepth::Int,IsX::Bool,IsSmooth::
     # The function returns a vector of entanglement entropies for each depth.
     EE_arr=zeros(EndDepth-StartDepth+1)
 
-    Threads.@threads for depth in StartDepth:EndDepth
+    for depth in StartDepth:EndDepth
         # Calculate the entanglement entropy for the region between StartDepth and EndDepth.
-        BoundaryISG=Calculate_boundary_stabilizers(Width,depth,BoundaryOnly=true,IsXMeasurement=IsX,IsSmoothBoundary=IsSmooth)
+        BoundaryISG=Calculate_boundary_stabilizers(Width,depth,BoundaryOnly=true,SeeFullLattice=true,FindLocalGenerators=false,IsXMeasurement=IsX,IsSmoothBoundary=IsSmooth)
 
         if(PrintInfo)
             coeff=zeros(Bool,Width,Width)
@@ -271,11 +267,16 @@ function sample_EE(Width::Int,StartDepth::Int,EndDepth::Int,IsX::Bool,IsSmooth::
     PyPlot.xlabel("Depth")
     PyPlot.ylabel("Entanglement Entropy")
     PyPlot.title("Entanglement Entropy vs Depth, Width="*string(Width))
-    PyPlot.show()
+    PyPlot.savefig("Width="*string(Width)*".png")
 
+    # Clear PyPlot buffer after saving the figure
+    PyPlot.clf()
 
     return EE_arr
 end
 
+sample_EE(26,10,12,false,true)
+sample_EE(30,10,12,false,true)
 
-println(sample_EE(24,16,48,false,true))
+
+
