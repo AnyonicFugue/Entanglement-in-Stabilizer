@@ -3,9 +3,9 @@ include("dynamic_update.jl")
 import PyPlot
 
 
-plot_round=4
+plot_round=3
 
-function plot_stabilizer_generators(Width::Int,Depth::Int,Stabilizers::Array{Bool,2},PlotNumber::Int,Title::String,BoundaryOnly::Bool=false)
+function plot_stabilizer_generators(Width::Int,Depth::Int,Stabilizers::Array{Bool,2},PlotNumber::Int,Title::String)
 
     # Use PyPlot library to visualize the stabilizer generators on a square lattice and show a graph for each stabilizer
     # A vertex is green if there is a Pauli-X, blue if a Pauli-Z, and red if both.
@@ -21,7 +21,7 @@ function plot_stabilizer_generators(Width::Int,Depth::Int,Stabilizers::Array{Boo
     end
 
 
-    if(BoundaryOnly)
+    if(false) # if(BoundaryOnly) ; this was initially to show the stabilizers only on the boundary.
         cur=0
 
         for n in Width+1:lattice_size
@@ -89,151 +89,82 @@ function plot_stabilizer_generators(Width::Int,Depth::Int,Stabilizers::Array{Boo
 
     end
 
-
-
 end
 
-function rough_boundary_X(Width::Int,Depth::Int)
-    # The lattice is put on a cylinder, i.e. a periodic boundary condition in the x direction and an open boundary condition in the y direction.
-    # The lower boundary is a smooth boundary and the upper boundary is a rough boundary.
-        # The lower boundary has y coordinate 1. The upper boundary 
 
-    # The function calculates the boundary stabilizers after measuring all single-site X in the bulk.
-    
-    # Initially, the state is a cluster state.
-
-    lattice_size=Width*Depth
-    Initial_SG=zeros(Bool,lattice_size,2*lattice_size) # One stabilizer each site and we need two elements for each site.
-    measurements=zeros(Bool,Width*(Depth-1),2*lattice_size) # The lowest row isn't measured.
-
-    # Initialize the stabilizer group.
-
-    initialize_rough_boundary!(Width,Depth,Initial_SG)
-
-
-    # Initialize Measurements
-    for y in 2:Depth
-        for x in 1:Width
-            n=Width*(y-1)+x
-            measurements[n-Width,2*n-1]=true # Pauli-X # Set the first site on the second row as 1
-        end
-    end
-
-    # Update the stabilizer group
-    println("Initial_SG")
-    println(size(Initial_SG))
-    # println(ISG_to_string(Initial_SG,1,Width,Depth,true))
-    new_SG=update(lattice_size,Initial_SG,measurements)
-    println("New_SG")
-    println(size(new_SG))
-    
-    println(ISG_to_string(new_SG,1,Width,Depth,true))
-
-    title="Rough Boundary X,Width="*string(Width)*",Depth="*string(Depth)
-    plot_stabilizer_generators(Width,Depth,new_SG,plot_round,title)
-end
-
-function smooth_boundary_Y(Width::Int,Depth::Int,BoundaryOnly::Bool=false)
+function Calculate_boundary_stabilizers(;Width::Int,Depth::Int,BoundaryOnly::Bool=false,SeeFullLattice::Bool=true,Plot::Bool=false,FindLocalGenerators::Bool=true,IsXMeasurement::Bool,IsSmoothBoundary::Bool)
     # The lattice is put on a cylinder, i.e. a periodic boundary condition in the x direction and an open boundary condition in the y direction.
     # The lower boundary is a smooth boundary and the upper boundary is a rough boundary.
         # The lower boundary has y coordinate 1. The upper boundary has y coordinate Depth.
 
-    # The function calculates the boundary stabilizers after measuring all single-site X in the bulk.
-    
-    # Initially, the state is a cluster state.
+    # If BoundaryOnly, then the returning stabilizer group would be truncated to leave only the boundary part.
+    # If SeeFullLattice, then the stabilizer group would be truncated before Find_local_generators in order to show the bulk behavior of the stabilizers.
 
     lattice_size=Width*Depth
     Initial_SG=zeros(Bool,lattice_size,2*lattice_size) # One stabilizer each site and we need two elements for each site.
     measurements=zeros(Bool,Width*(Depth-1),2*lattice_size) # The lowest row isn't measured.
 
     # Initialize the stabilizer group.
-    initialize_smooth_boundary!(Width,Depth,Initial_SG)
+    if(IsSmoothBoundary)
+        initialize_smooth_boundary!(Width,Depth,Initial_SG)
+    else
+        initialize_rough_boundary!(Width,Depth,Initial_SG)
+    end
 
     # Initialize Measurements
     for y in 2:Depth
         for x in 1:Width
             n=Width*(y-1)+x
 
-            # Y-measurements
+            # X-measurements
             measurements[n-Width,2*n-1]=true
-            measurements[n-Width,2*n]=true 
+
+            if(!(IsXMeasurement))
+                measurements[n-Width,2*n]=true # Y measurements
+            end
         end
     end
 
     # Update the stabilizer group
-    println("Initial_SG")
+    # println("Initial_SG")
     println(size(Initial_SG))
     # println(ISG_to_string(Initial_SG,1,Width,Depth,true))
     # plot_stabilizer_generators(Width,Depth,Initial_SG)
 
     new_SG=update(lattice_size,Initial_SG,measurements)
-    println("New_SG")
-    println(size(new_SG))
-
-    if(!(BoundaryOnly))
-        new_SG=new_SG[1:Width,:] # Truncate the stabilizer to leave only the boundary
-    end
-    println(ISG_to_string(new_SG,1,Width,Depth,true))
-
-
-
-    Find_local_generators!(new_SG)
-    println("Transform to local generators")
-    println(ISG_to_string(new_SG,1,Width,Depth,true))
-
-    title="Smooth Boundary Y,Width="*string(Width)*",Depth="*string(Depth)
-    plot_stabilizer_generators(Width,Depth,new_SG,plot_round,title,BoundaryOnly)
-
-end
-
-function rough_boundary_Y(Width::Int,Depth::Int,BoundaryOnly::Bool=false)
-    # The lattice is put on a cylinder, i.e. a periodic boundary condition in the x direction and an open boundary condition in the y direction.
-    # The lower boundary is a smooth boundary and the upper boundary is a rough boundary.
-        # The lower boundary has y coordinate 1. The upper boundary 
-
-    # The function calculates the boundary stabilizers after measuring all single-site X in the bulk.
+    # println("New_SG")
     
-    # Initially, the state is a cluster state.
 
-    lattice_size=Width*Depth
-    Initial_SG=zeros(Bool,lattice_size,2*lattice_size) # One stabilizer each site and we need two elements for each site.
-    measurements=zeros(Bool,Width*(Depth-1),2*lattice_size) # The lowest row isn't measured.
-
-    # Initialize the stabilizer group.
-    initialize_rough_boundary!(Width,Depth,Initial_SG)
-
-    # Initialize Measurements
-    for y in 2:Depth
-        for x in 1:Width
-            n=Width*(y-1)+x
-
-            # Y-measurements
-            measurements[n-Width,2*n-1]=true
-            measurements[n-Width,2*n]=true 
-        end
+    if(SeeFullLattice)
+        new_SG=new_SG[1:Width,:] # Truncate the stabilizers thus we can see the structure on the full lattice
     end
+    # println(ISG_to_string(new_SG,1,Width,Depth,true))
 
-    # Update the stabilizer group
-    println("Initial_SG")
-    println(size(Initial_SG))
-    # println(ISG_to_string(Initial_SG,1,Width,Depth,true))
-    # plot_stabilizer_generators(Width,Depth,Initial_SG)
 
-    new_SG=update(lattice_size,Initial_SG,measurements)
-    println("New_SG")
-    println(size(new_SG))
-    if(!(BoundaryOnly))
+    if(FindLocalGenerators)
+        Find_local_generators!(new_SG)
+    end
+    # println("Transform to local generators")
+    # println(ISG_to_string(new_SG,1,Width,Depth,true))
+
+    if(BoundaryOnly)
         new_SG=new_SG[1:Width,:] # Truncate the stabilizer to leave only the boundary
+        # println(ISG_to_string(new_SG,1,Width,Depth,true))
+        # println(size(new_SG))
     end
 
-    Find_local_generators!(new_SG)
-    println(ISG_to_string(new_SG,1,Width,Depth,true))
+    title="Smooth Boundary X,Width="*string(Width)*",Depth="*string(Depth)
 
-    title="Rough Boundary Y,Width="*string(Width)*",Depth="*string(Depth)
-    plot_stabilizer_generators(Width,Depth,new_SG,plot_round,title,BoundaryOnly)
+    if(Plot)
+        plot_stabilizer_generators(Width,Depth,new_SG,plot_round,title)
+    end
 
+    if(BoundaryOnly)
+        return new_SG[:,1:2*Width]
+    else
+        return new_SG
+    end
 end
-
 
 
 function initialize_smooth_boundary!(Width::Int,Depth::Int,StabArray::Array{Bool,2})
@@ -312,7 +243,31 @@ function initialize_rough_boundary!(Width::Int,Depth::Int,StabArray::Array{Bool,
 end
 
 
-smooth_boundary_Y(10,32,false)
+# smooth_boundary_Y(20,48,false)
+
+function sample_EE(Width::Int,StartDepth::Int,EndDepth::Int)
+    # The function calculates the entanglement entropy of the boundary stabilizers.
+    
+    # The entanglement entropy is calculated for the region between StartDepth and EndDepth.
+    # The function returns a vector of entanglement entropies for each depth.
+    EE_arr=zeros(EndDepth-StartDepth+1)
+
+    for depth in StartDepth:EndDepth
+        # Calculate the entanglement entropy for the region between StartDepth and EndDepth.
+        EE_arr[depth-StartDepth+1]=Evaluate_EE(smooth_boundary_X(Width,depth,true,true,false,false),Int(floor(Width/3)))
+    end
+
+    # Plot entanglement entropy vs depth by Pyplot package
+    PyPlot.plot(range(start=StartDepth,stop=EndDepth,step=1),EE_arr)
+    PyPlot.xlabel("Depth")
+    PyPlot.ylabel("Entanglement Entropy")
+    PyPlot.title("Entanglement Entropy vs Depth, Width="*string(Width))
+    PyPlot.show()
 
 
+    return EE_arr
+end
+
+
+Calculate_boundary_stabilizers(Width=8,Depth=10,Plot=true,IsXMeasurement=false,IsSmoothBoundary=true)
 

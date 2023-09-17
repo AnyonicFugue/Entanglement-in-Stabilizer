@@ -201,3 +201,24 @@ function Find_local_generators!(ISG::Array{Bool,2})
     end
 
 end
+
+function Evaluate_EE(ISG::Array{Bool,2},NSite::Int)
+    # The function uses Gaussian elimination to calculate the rank of the subgroup of ISG that acts trivially out of sites {1,...,n}.
+
+    double_Width=size(ISG,2) # 2*Width
+    Width=Int(double_Width/2) # The width of the lattice.
+    n_stab=size(ISG,1)
+
+    # EE = N_A-|G_A|=N_B-|G_B|. Calculate N_B-|G_B| for simplicity since NSite is smaller than half.
+
+    ISG_A=ISG[:,1:2*NSite] # The stabilizer group inside the region.
+    
+    coefficients=zeros(Bool,n_stab,n_stab) # The coefficient matrix to be used in gaussian_elimination.
+    rank=gaussian_elimination!(ISG_A,coefficients,true) # The rank equals the total rank minus the dimension of the zero space of truncated partial stabilizers in A (the number of stabilizers has support only in the region B).
+    # rank = |G|-|G_B|=Width-|G_B|
+    EE=rank-NSite # EE = N_A-|G_A|=N_B-|G_B|
+
+    return EE
+
+
+end
