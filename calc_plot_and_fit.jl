@@ -1,5 +1,5 @@
 import PyPlot as plt
-import CurveFit as cf
+# import CurveFit as cf
 
 function calc_entropy_old(StabGenerators::Array{Bool,2},Region,Parallel::Bool,RegionSize::Int64)
     # region is a vector of the d.o.f. in the region of interest.

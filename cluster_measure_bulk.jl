@@ -1,7 +1,7 @@
 include("utils.jl")
 include("dynamic_update.jl")
 import PyPlot
-import Profile
+# import Profile
 
 plot_round=3
 debug=true
@@ -279,6 +279,7 @@ function sample_deterministic_EE(Width::Int,StartDepth::Int,EndDepth::Int,IsX::B
     PyPlot.plot(range(start=StartDepth,stop=EndDepth,step=1),EE_arr)
     PyPlot.xlabel("Depth")
     PyPlot.ylabel("Entanglement Entropy")
+    PyPlot.ylim([0.0,Width/2])
     PyPlot.title("Entanglement Entropy vs Depth, Width="*string(Width))
     PyPlot.savefig("Width="*string(Width)*".png")
 
@@ -325,11 +326,12 @@ function sample_random_EE(Width::Int,StartDepth::Int,EndDepth::Int,probX::Float6
     PyPlot.plot(range(start=StartDepth,stop=EndDepth,step=1),EE_arr)
     PyPlot.xlabel("Depth")
     PyPlot.ylabel("Entanglement Entropy")
+    PyPlot.ylim([0.0,Width/2])
     PyPlot.title("Entanglement Entropy vs Depth, Width="*string(Width)*",pX="*string(probX))
     PyPlot.savefig("Random Width="*string(Width)*".png")
 
-    io=open("Random Width="*string(Width),"w+")
-    write(io,EE_arr)
+    io=open("Random Width="*string(Width)*",pX="*string(probX)*".txt","w+")
+    write(io,string(EE_arr))
     close(io)
 
     # Clear PyPlot buffer after saving the figure
@@ -338,7 +340,7 @@ function sample_random_EE(Width::Int,StartDepth::Int,EndDepth::Int,probX::Float6
     return EE_arr
 end
 
-sample_random_EE(14,10,42,0.5,true)
+sample_random_EE(14,10,12,0.5,true,SampleProportion=2.0)
 
 
 

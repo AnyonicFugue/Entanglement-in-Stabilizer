@@ -2,7 +2,7 @@ include("calc_plot_and_fit.jl")
 include("dynamic_update.jl")
 include("utils.jl")
 
-import CurveFit
+# import CurveFit
 # import Profile
 # import StatProfilerHTML
 
