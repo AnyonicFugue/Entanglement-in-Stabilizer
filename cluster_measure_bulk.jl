@@ -4,6 +4,7 @@ import PyPlot
 import Profile
 
 plot_round=3
+debug=true
 
 function plot_stabilizer_generators(Width::Int,Depth::Int,Stabilizers::Array{Bool,2},PlotNumber::Int,Title::String)
 
@@ -92,7 +93,7 @@ function plot_stabilizer_generators(Width::Int,Depth::Int,Stabilizers::Array{Boo
 end
 
 
-function Calculate_boundary_stabilizers(Width::Int,Depth::Int;BoundaryOnly::Bool=false,SeeFullLattice::Bool=true,Plot::Bool=false,FindLocalGenerators::Bool=true,IsXMeasurement::Bool,IsSmoothBoundary::Bool,PrintISG::Bool=false)
+function Calculate_boundary_stabilizers(Width::Int,Depth::Int;BoundaryOnly::Bool=false,SeeFullLattice::Bool=true,Plot::Bool=false,FindLocalGenerators::Bool=true,IsXMeasurement::Bool,IsSmoothBoundary::Bool,PrintISG::Bool=false,Random::Bool=false,pX::Float64=0.0)
     # The lattice is put on a cylinder, i.e. a periodic boundary condition in the x direction and an open boundary condition in the y direction.
     # The lower boundary is a smooth boundary and the upper boundary is a rough boundary.
         # The lower boundary has y coordinate 1. The upper boundary has y coordinate Depth.
@@ -111,6 +112,7 @@ function Calculate_boundary_stabilizers(Width::Int,Depth::Int;BoundaryOnly::Bool
         initialize_rough_boundary!(Width,Depth,Initial_SG)
     end
 
+
     # Initialize Measurements
     for y in 2:Depth
         for x in 1:Width
@@ -119,8 +121,14 @@ function Calculate_boundary_stabilizers(Width::Int,Depth::Int;BoundaryOnly::Bool
             # X-measurements
             measurements[n-Width,2*n-1]=true
 
-            if(!(IsXMeasurement))
-                measurements[n-Width,2*n]=true # Y measurements
+            if(Random)
+                if(rand()>pX) # The probability of rand<pX is pX, which means the measurement is X.
+                    measurements[n-Width,2*n]=true # Y measurements
+                end
+            else
+                if(!(IsXMeasurement))
+                    measurements[n-Width,2*n]=true # Y measurements
+                end
             end
         end
     end
@@ -128,10 +136,15 @@ function Calculate_boundary_stabilizers(Width::Int,Depth::Int;BoundaryOnly::Bool
     # Update the stabilizer group
     # println("Initial_SG")
     println(size(Initial_SG))
-    # println(ISG_to_string(Initial_SG,1,Width,Depth,true))
-    # plot_stabilizer_generators(Width,Depth,Initial_SG)
 
-    new_SG=update(lattice_size,Initial_SG,measurements,true,true)
+    #=
+    if(debug)
+        println(ISG_to_string(measurements,1,Width,Depth,true))
+        plot_stabilizer_generators(Width,Depth,measurements,plot_round,"Initial")
+    end
+    =#
+
+    new_SG=update(lattice_size,Initial_SG,measurements,true,true) # If random, gaussian elimination should not be parallel since there would be multiple samplings going together.
     # println("New_SG")
     
 
@@ -241,7 +254,7 @@ end
 
 # smooth_boundary_Y(20,48,false)
 
-function sample_EE(Width::Int,StartDepth::Int,EndDepth::Int,IsX::Bool,IsSmooth::Bool,PrintInfo::Bool=false)
+function sample_deterministic_EE(Width::Int,StartDepth::Int,EndDepth::Int,IsX::Bool,IsSmooth::Bool,PrintInfo::Bool=false)
     # The function calculates the entanglement entropy of the boundary stabilizers.
     
     # The entanglement entropy is calculated for the region between StartDepth and EndDepth.
@@ -269,14 +282,67 @@ function sample_EE(Width::Int,StartDepth::Int,EndDepth::Int,IsX::Bool,IsSmooth::
     PyPlot.title("Entanglement Entropy vs Depth, Width="*string(Width))
     PyPlot.savefig("Width="*string(Width)*".png")
 
+    io=open("Width="*string(Width)*string(IsX)*string(IsSmooth),"w+")
+    write(io,EE_arr)
+    close(io)
     # Clear PyPlot buffer after saving the figure
     PyPlot.clf()
 
     return EE_arr
 end
 
-sample_EE(26,10,12,false,true)
-sample_EE(30,10,12,false,true)
+function sample_random_EE(Width::Int,StartDepth::Int,EndDepth::Int,probX::Float64,IsSmooth::Bool;PrintInfo::Bool=false,SampleProportion::Float64=1.0)
+    # The function calculates the entanglement entropy of the boundary stabilizers, with random bulk measurements.
+    # pX is between 0 and 1.
+    
+    # The entanglement entropy is calculated for the region between StartDepth and EndDepth.
+    # The function returns a vector of entanglement entropies for each depth.
+    EE_arr=zeros(EndDepth-StartDepth+1)
+
+    for depth in StartDepth:EndDepth
+        # Calculate the entanglement entropy for the region between StartDepth and EndDepth.
+
+        sample_num=Int(floor(Width*depth/SampleProportion))
+
+        for i in range(1,sample_num)
+
+            # Take multiple samples and average over them.
+
+            BoundaryISG=Calculate_boundary_stabilizers(Width,depth,BoundaryOnly=true,SeeFullLattice=true,FindLocalGenerators=false,IsXMeasurement=true,Random=true,pX=probX,IsSmoothBoundary=IsSmooth)
+
+            if(PrintInfo)
+                coeff=zeros(Bool,Width,Width)
+                print("rank=")
+                println(gaussian_elimination!(BoundaryISG,coeff,true))
+                println(ISG_to_string(BoundaryISG,1,Width,1))
+            end
+
+            EE_arr[depth-StartDepth+1]+=Evaluate_EE(BoundaryISG,Int(floor(Width/2)),AverageStart=true)/sample_num
+        end
+    end
+
+    # Plot entanglement entropy vs depth by Pyplot package
+    PyPlot.plot(range(start=StartDepth,stop=EndDepth,step=1),EE_arr)
+    PyPlot.xlabel("Depth")
+    PyPlot.ylabel("Entanglement Entropy")
+    PyPlot.title("Entanglement Entropy vs Depth, Width="*string(Width)*",pX="*string(probX))
+    PyPlot.savefig("Random Width="*string(Width)*".png")
+
+    io=open("Random Width="*string(Width),"w+")
+    write(io,EE_arr)
+    close(io)
+
+    # Clear PyPlot buffer after saving the figure
+    PyPlot.clf()
+
+    return EE_arr
+end
+
+sample_random_EE(14,10,42,0.5,true)
+
+
+
+
 
 
 
